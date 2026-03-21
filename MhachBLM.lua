@@ -65,8 +65,9 @@ MhachBLM = {
 	ispve = true,
 	ispvp = false
 }
+local self = MhachBLM
 
-MhachBLM.Settings = {
+self.Settings = {
     Debug = true,
 	FuckAnimation = false,  --是否开启了动画锁
 	RedPlayer = false,   --红丸循环
@@ -78,17 +79,17 @@ MhachBLM.Settings = {
 	DotBlackList = {}  --dot黑名单
 }
 
-MhachBLM.GUI = {
+self.GUI = {
     open = false,
     visible = true,
     name = "MhachBLM",
 }
 
-MhachBLM.classes = {
+self.classes = {
     [FFXIV.JOBS.BLACKMAGE] = true,
 }
 
-MhachBLM.region = {1, 2, 3}
+self.region = {1, 2, 3, 4}
 --local MinionPath = GetStartupPath()
 --local LuaPath = GetLuaModsPath()
 --local ModulePath = LuaPath .. [[ACR\CombatRoutines\MhachBLM\]]
@@ -109,7 +110,7 @@ MhachBLM.region = {1, 2, 3}
 高震雷 3872
 
 ]]
-MhachBLM.BuffID = {
+self.BuffID = {
     Huomiao = 165,
     Yunzhen = 3870,
 	Sanlian = 1211,
@@ -119,7 +120,9 @@ MhachBLM.BuffID = {
 	AoeDot3 = 3872
 }
 
-function MhachBLM.BLMGUI.ApplyButtonStyle(enabled, customStyle)
+
+
+function self.BLMGUI.ApplyButtonStyle(enabled, customStyle)
     local DefaultEnabledColor = {0.47, 0.56, 0.24, 1.0}    -- 绿色（True）   
     local DefaultDisabledColor = {0.5, 0.5, 0.5, 1.0}   -- 灰色（False）
     local HoveredColor = {0.47, 0.56, 0.24, 1.0}           -- 启动状态下悬停    
@@ -150,48 +153,48 @@ function MhachBLM.BLMGUI.ApplyButtonStyle(enabled, customStyle)
     end
 end
 
-function MhachBLM.HasTarget()     --检查是否有有效目标
-	if TensorCore.mGetTarget()~=nil and TensorCore.mGetTarget().attackable then
+function self.HasTarget()     --检查是否有有效目标
+	if TensorCore.mGetTarget() ~= nil and TensorCore.mGetTarget().attackable then
 		return true
 	else
 		return false
 	end
 end
 
-AnyoneCore.Settings.PrepullHelper.peloton = false
+--AnyoneCore.Settings.PrepullHelper.peloton = false
 
 
 -- This is to have a different logic for AOE healing if player is in a donjon or raid
 
-MhachBLM.Skills = {}
-MhachBLM.PrognosisTime = 0
-MhachBLM.CurrentDPSTarget = 0
-MhachBLM.HasDPSTarget = false
+self.Skills = {}
+self.PrognosisTime = 0
+self.CurrentDPSTarget = 0
+self.HasDPSTarget = false
 
 
-function MhachBLM.DebugPrint(...)
-    if MhachBLM.Settings.Debug then
+function self.DebugPrint(...)
+    if self.Settings.Debug then
         d("[MhachBLM] " .. ...)
     end
 end
 
 
-function MhachBLM.GetSkill(SkillID)
+function self.GetSkill(SkillID)
     if not SkillID then
         return nil
     end
-    if not MhachBLM.Skills[SkillID] then
-        MhachBLM.DebugPrint("Skill not found: " .. tostring(SkillID))
+    if not self.Skills[SkillID] then
+        self.DebugPrint("Skill not found: " .. tostring(SkillID))
     else
-        return MhachBLM.Skills[SkillID]
+        return self.Skills[SkillID]
     end
 end
 
 -- 这个工具函数用于注册一项技能并保存一些数据，这样我们就不必每次都请求它了。----------------------------------------------------------------------------------------------------------------------------------------------------
-function MhachBLM.RegisterSkill(action, isGCD, tag)
+function self.RegisterSkill(action, isGCD, tag)
 	tag = tag or "Default"  --传入一个tag，标记为AOE，DOT以特殊处理
     if action then
-        MhachBLM.Skills[action.id] = {
+        self.Skills[action.id] = {
 			name = action.name,
             IsGCD = isGCD,  -- 是否为gcd技能
 			holdTime = 0,  --延后时间，秒
@@ -208,11 +211,11 @@ function MhachBLM.RegisterSkill(action, isGCD, tag)
 			inHotbarList = false,  --是否在热键栏队列
 			tag = tag,
         }
-        MhachBLM.DebugPrint("Registered Skill: " .. action.name .. " (" .. action.id .. ")")
+        self.DebugPrint("Registered Skill: " .. action.name .. " (" .. action.id .. ")")
     else
 		--特殊技能处理，比如锁定面向
 		if tag == "LockFace" then
-			MhachBLM.Skills[-1] = {
+			self.Skills[-1] = {
 				name = tag,
 				IsGCD = isGCD,  -- 是否为gcd技能
 				holdTime = 0,  --延后时间，秒
@@ -231,146 +234,146 @@ function MhachBLM.RegisterSkill(action, isGCD, tag)
 			}
 
 		else
-			MhachBLM.DebugPrint("Action with ID " .. action.id .. " could not be find, is it valid ? Report to a dev.")
+			self.DebugPrint("Action with ID " .. action.id .. " could not be find, is it valid ? Report to a dev.")
 		end
     end
 end
 
 --技能id和是否为gcd-------------------------------------------------------------------------------------------------------------------------------------
 local Ice_1 = ActionList:Get(1, 142)
-MhachBLM.RegisterSkill(Ice_1, true)  --冰结
+self.RegisterSkill(Ice_1, true)  --冰结
 
 local Fire_1 = ActionList:Get(1, 141)
-MhachBLM.RegisterSkill(Fire_1, true)  --火炎
+self.RegisterSkill(Fire_1, true)  --火炎
 
 local Xing_Ling = ActionList:Get(1, 149)
-MhachBLM.RegisterSkill(Xing_Ling, false) --星灵移位
+self.RegisterSkill(Xing_Ling, false) --星灵移位
 
 local DOT_1 = ActionList:Get(1, 144)
-MhachBLM.RegisterSkill(DOT_1, true, "DOT") --闪雷
+self.RegisterSkill(DOT_1, true, "DOT") --闪雷
 
 local Ice_2 = ActionList:Get(1, 25793)
-MhachBLM.RegisterSkill(Ice_2, true) --冰冻
+self.RegisterSkill(Ice_2, true) --冰冻
 
 local Beng_Kui = ActionList:Get(1, 156)
-MhachBLM.RegisterSkill(Beng_Kui, true) --崩溃
+self.RegisterSkill(Beng_Kui, true) --崩溃
 
 local Fire_2 = ActionList:Get(1, 147)
-MhachBLM.RegisterSkill(Fire_2, true, "AOE") --烈炎
+self.RegisterSkill(Fire_2, true, "AOE") --烈炎
 
 local DOT_AOE_1 = ActionList:Get(1, 7447)
-MhachBLM.RegisterSkill(DOT_AOE_1, true, "AOE") --震雷
+self.RegisterSkill(DOT_AOE_1, true, "AOEDOT") --震雷
 
 local Mo_Zhao = ActionList:Get(1, 157)
-MhachBLM.RegisterSkill(Mo_Zhao, false) --魔罩
+self.RegisterSkill(Mo_Zhao, false) --魔罩
 
 local Fire_3 = ActionList:Get(1, 152)
-MhachBLM.RegisterSkill(Fire_3, true) --爆炎
+self.RegisterSkill(Fire_3, true) --爆炎
 
 local Yi_Tai = ActionList:Get(1, 155)
-MhachBLM.RegisterSkill(Yi_Tai, false, "MO") --以太步
+self.RegisterSkill(Yi_Tai, false, "MO") --以太步
 
 local Mo_Quan = ActionList:Get(1, 158)
-MhachBLM.RegisterSkill(Mo_Quan, false) --魔泉
+self.RegisterSkill(Mo_Quan, false) --魔泉
 
 local Ice_3 = ActionList:Get(1, 154)
-MhachBLM.RegisterSkill(Ice_3, true) --冰封
+self.RegisterSkill(Ice_3, true) --冰封
 
 local Ling_Ji_Hun = ActionList:Get(1, 16506)
-MhachBLM.RegisterSkill(Ling_Ji_Hun, true) --灵极魂
+self.RegisterSkill(Ling_Ji_Hun, true) --灵极魂
 
 local Ice_AOE = ActionList:Get(1, 159)
-MhachBLM.RegisterSkill(Ice_AOE, true, "AOE") --玄冰
+self.RegisterSkill(Ice_AOE, true, "AOE") --玄冰
 
 local DOT_2 = ActionList:Get(1, 153)
-MhachBLM.RegisterSkill(DOT_2, true, "DOT") --暴雷
+self.RegisterSkill(DOT_2, true, "DOT") --暴雷
 
 local He_Bao = ActionList:Get(1, 162)
-MhachBLM.RegisterSkill(He_Bao, true, "AOE") --核爆
+self.RegisterSkill(He_Bao, true, "AOE") --核爆
 
 local Mo_Wen = ActionList:Get(1, 3573)
-MhachBLM.RegisterSkill(Mo_Wen, false) --黑魔纹
+self.RegisterSkill(Mo_Wen, false) --黑魔纹
 
 local Ice_4 = ActionList:Get(1, 3576)
-MhachBLM.RegisterSkill(Ice_4, true) --冰澈
+self.RegisterSkill(Ice_4, true) --冰澈
 
 local Fire_4 = ActionList:Get(1, 3577)
-MhachBLM.RegisterSkill(Fire_4, true) --炽炎
+self.RegisterSkill(Fire_4, true) --炽炎
 
 local Mo_Wen_Bu = ActionList:Get(1, 7419)
-MhachBLM.RegisterSkill(Mo_Wen_Bu, false) --魔纹步
+self.RegisterSkill(Mo_Wen_Bu, false) --魔纹步
 
 local DOT_AOE_2 = ActionList:Get(1, 7420)
-MhachBLM.RegisterSkill(DOT_AOE_2, true, "AOE") --霹雷
+self.RegisterSkill(DOT_AOE_2, true, "AOEDOT") --霹雷
 
 local San_Lian = ActionList:Get(1, 7421)
-MhachBLM.RegisterSkill(San_Lian, false) --三连咏唱
+self.RegisterSkill(San_Lian, false) --三连咏唱
 
 local Hui_Zhuo = ActionList:Get(1, 7422)
-MhachBLM.RegisterSkill(Hui_Zhuo, true, "AOE") --秽浊
+self.RegisterSkill(Hui_Zhuo, true, "AOE") --秽浊
 
 local Jue_Wang = ActionList:Get(1, 16505)
-MhachBLM.RegisterSkill(Jue_Wang, true) --绝望
+self.RegisterSkill(Jue_Wang, true) --绝望
 
 local Yi_Yan = ActionList:Get(1, 16507)
-MhachBLM.RegisterSkill(Yi_Yan, true) --异言
+self.RegisterSkill(Yi_Yan, true) --异言
 
 local Fire_5 = ActionList:Get(1, 25794)
-MhachBLM.RegisterSkill(Fire_5, true, "AOE") --高烈炎
+self.RegisterSkill(Fire_5, true, "AOE") --高烈炎
 
 local Ice_5 = ActionList:Get(1, 25795)
-MhachBLM.RegisterSkill(Ice_5, true, "AOE") --高冰冻
+self.RegisterSkill(Ice_5, true, "AOE") --高冰冻
 
 local Xiang_Shu = ActionList:Get(1, 25796)
-MhachBLM.RegisterSkill(Xiang_Shu, false) --详述
+self.RegisterSkill(Xiang_Shu, false) --详述
 
 local DOT_3 = ActionList:Get(1, 36986)
-MhachBLM.RegisterSkill(DOT_3, true, "DOT") --高闪雷
+self.RegisterSkill(DOT_3, true, "DOT") --高闪雷
 
 local DOT_AOE_3 = ActionList:Get(1, 36987)
-MhachBLM.RegisterSkill(DOT_AOE_3, true, "AOE") --高震雷
+self.RegisterSkill(DOT_AOE_3, true, "AOEDOT") --高震雷
 
 local Mo_Wen_Reset = ActionList:Get(1, 36988)
-MhachBLM.RegisterSkill(Mo_Wen_Reset, false) --魔纹重置
+self.RegisterSkill(Mo_Wen_Reset, false) --魔纹重置
 
 local Yao_Xing = ActionList:Get(1, 36989)
-MhachBLM.RegisterSkill(Yao_Xing, true, "AOE") --耀星
+self.RegisterSkill(Yao_Xing, true, "AOE") --耀星
 
 local Bei_Lun = ActionList:Get(1, 25797)
-MhachBLM.RegisterSkill(Bei_Lun, true) --悖论
+self.RegisterSkill(Bei_Lun, true) --悖论
 
 local Hun_Luan = ActionList:Get(1, 7560)
-MhachBLM.RegisterSkill(Hun_Luan, false, "Target") --昏乱
+self.RegisterSkill(Hun_Luan, false, "Target") --昏乱
 
 local Cui_Mian = ActionList:Get(1, 25880)
-MhachBLM.RegisterSkill(Cui_Mian, true) --催眠
+self.RegisterSkill(Cui_Mian, true) --催眠
 
 local Xing_Meng = ActionList:Get(1, 7562)
-MhachBLM.RegisterSkill(Xing_Meng, false) --醒梦
+self.RegisterSkill(Xing_Meng, false) --醒梦
 
 local Ji_Ke = ActionList:Get(1, 7561)
-MhachBLM.RegisterSkill(Ji_Ke, false) --即刻咏唱
+self.RegisterSkill(Ji_Ke, false) --即刻咏唱
 
 local Chen_Wen = ActionList:Get(1, 7559)
-MhachBLM.RegisterSkill(Chen_Wen, false) --沉稳咏唱
+self.RegisterSkill(Chen_Wen, false) --沉稳咏唱
 
 local LB = ActionList:Get(1, 203)
-MhachBLM.RegisterSkill(LB, false) --极限技1
+self.RegisterSkill(LB, false) --极限技1
 
 local LB2 = ActionList:Get(1, 204)
-MhachBLM.RegisterSkill(LB2, false) --极限技2
+self.RegisterSkill(LB2, false) --极限技2
 
 local LB3 = ActionList:Get(1, 205)
-MhachBLM.RegisterSkill(LB3, false) --极限技3
+self.RegisterSkill(LB3, false) --极限技3
 
 local Sprint = ActionList:Get(1, 3)
-MhachBLM.RegisterSkill(Sprint, false) -- 冲刺
+self.RegisterSkill(Sprint, false) -- 冲刺
 
-MhachBLM.RegisterSkill(nil, false, "LockFace") -- 自动面向
+self.RegisterSkill(nil, false, "LockFace") -- 自动面向
 
 local AutoAttack = ActionList:Get(5, 1).name  --自动攻击
 local sortedIds = {}  --使技能按id排列
-for id in pairs(MhachBLM.Skills) do
+for id in pairs(self.Skills) do
     table.insert(sortedIds, id)
 end
 
@@ -413,6 +416,63 @@ function Queue:enqueueUnic(value)  --不允许插入重复值
     -- 不存在重复值，正常入队
     self.items[self.tail] = value
     self.tail = self.tail + 1
+    return true
+end
+
+-- 向队首插入元素（允许重复）
+function Queue:enqueueFront(value)
+    -- 如果队列为空，直接入队
+    if self.head == self.tail then
+        self.items[self.head] = value
+        self.tail = self.tail + 1
+        return true
+    end
+    
+    -- 如果head已经是1，需要移动所有元素
+    if self.head == 1 then
+        -- 从队尾开始向后移动所有元素
+        for i = self.tail - 1, self.head, -1 do
+            self.items[i + 1] = self.items[i]
+        end
+        self.tail = self.tail + 1
+    else
+        -- 否则，直接将head向前移动
+        self.head = self.head - 1
+    end
+    
+    -- 在队首位置插入新元素
+    self.items[self.head] = value
+    return true
+end
+
+-- 向队首插入不重复的元素
+function Queue:enqueueFrontUnic(value)
+    -- 检查元素是否已存在
+    if self:contains(value) then
+        return false
+    end
+    
+    -- 如果队列为空，直接入队
+    if self.head == self.tail then
+        self.items[self.head] = value
+        self.tail = self.tail + 1
+        return true
+    end
+    
+    -- 如果head已经是1，需要移动所有元素
+    if self.head == 1 then
+        -- 从队尾开始向后移动所有元素
+        for i = self.tail - 1, self.head, -1 do
+            self.items[i + 1] = self.items[i]
+        end
+        self.tail = self.tail + 1
+    else
+        -- 否则，直接将head向前移动
+        self.head = self.head - 1
+    end
+    
+    -- 在队首位置插入新元素
+    self.items[self.head] = value
     return true
 end
 
@@ -470,18 +530,29 @@ function Queue:clear()
 	self.head = 1
 	self.tail = 1
 end
+
+-- 按顺序打印队列中所有元素
+function Queue:printQueue()
+    local elements = {}
+    for i = self.head, self.tail - 1 do
+        table.insert(elements, tostring(self.items[i]))
+    end
+    print(table.concat(elements, " "))
+end
 ----------------------------------------------------------------------------------------------------------------
 
-local ParadoxGauge = {[3] = true, [7] = true, [11] = true, [15] = true, [19] = true, [23] = true, [27] = true}  --悖论量谱快速鉴定
+--local ParadoxGauge = {[3] = true, [7] = true, [11] = true, [15] = true, [19] = true, [23] = true, [27] = true}  --悖论量谱快速鉴定
 local DotBuffs = {[161] = true, [162] = true, [163] = true, [1210] = true, [3871] = true, [3872] = true }
 local enemys = nil
 local target = nil
-local moTarget = nil
 local TargetTuanfu = {3849, 1221} --目标团辅
 local PlayerTuanfu = {1878, 3889, 786, 1185, 2599, 2964, 141, 1822, 1825, 2703, 1297, 3685}  --角色团辅
 local ShunFa = {167, 1211}  --瞬发buff
 local PlayerSkills = Queue:new()  --用户自定义循环列表
 local HotbarSkills = Queue:new()  --热键栏技能队列
+local GCDSkills = Queue:new()
+local OGCDSkills = Queue:new()
+
 local HoldList = {}  --hold技能列表
 local lastTime = 0
 local nowTime = 0
@@ -493,12 +564,14 @@ local Rotation = ModulePath .. [[MhachBLMRotation.lua]]
 local Settings = ModulePath .. [[Settings.lua]]
 local HotbarSettings = ModulePath .. [[HotbarSettings.lua]]
 local Icons = LuaPath .. [[ACR\CombatRoutines\MhachBLM\Icons\]]
+local Translation = ModulePath .. [[Translation.lua]]
 local defultIcon = Icons .. "disable.png"
 local MhachBLMTest = {}
-local InstantWindow = false   --是否需要瞬发窗口
+local T = {}  --这是翻译表
+local Language = "CN"
+local LanguageList = {"CN","EN","JP"}
+local languageIndex = 1
 local ForceAbl = false   --是否强制硬插
-local nextGCD = nil  --下一个gcd技能
-local nextAbl = nil --下一个能力技
 local lastSkill = nil  --上一个技能
 local lastABLTime = 0  --上一个能力技的全局时间ms
 local lastGCDTime = 0  --上一个gcd技能的全局时间ms
@@ -515,12 +588,25 @@ local speed_B = 2.4000000953674
 local speed_F = 6
 local speed_S = 2.4000000953674
 local speed_W = 2.4000000953674
-MhachBLM.prepull = false
+self.prepull = false
+
+
 --------------------------------------------------------------------------------------------------
+
+local function getLanguageIndex(str, list)
+	for i, value in ipairs(list) do
+        if value == str then
+            return i
+        end
+    end
+    return 1
+end
+
+
 local function SaveHotBar()
 	local tbl = {}
 	for _, id in ipairs(sortedIds) do
-		local skill = MhachBLM.Skills[id]
+		local skill = self.Skills[id]
 		tbl[id] = {
 			showHotbar = skill.showHotbar,  --是否显示hotbar
 			keyBind = skill.keyBind,  --绑定的按键
@@ -541,7 +627,7 @@ local function LoadHotBar()
 	local tbl = FileLoad(HotbarSettings)
 	if tbl ~= nil then
 		for _, id in ipairs(sortedIds) do
-			local skill = MhachBLM.Skills[id]
+			local skill = self.Skills[id]
 			skill.showHotbar = tbl[id].showHotbar
 			skill.keyBind = tbl[id].keyBind
 			skill.keyName = tbl[id].keyName
@@ -555,27 +641,31 @@ end
 local function LoadSettings()
 	local tbl = FileLoad(Settings)
 	if tbl ~= nil then
-		MhachBLM.BLM.CD = tbl.Value.CD
-		MhachBLM.BLM.DOT = tbl.Value.DOT
-		MhachBLM.BLM.AOE = tbl.Value.AOE
-		MhachBLM.BLM.Potion = tbl.Value.Potion
-		MhachBLM.BLM.Polyglot = tbl.Value.Polyglot
-		MhachBLM.BLM.Ley_Lines = tbl.Value.Ley_Lines
-		MhachBLM.BLM.Manafont = tbl.Value.Manafont
-		MhachBLM.BLM.Amplifier = tbl.Value.Amplifier
-		MhachBLM.BLM.Triplecast = tbl.Value.Triplecast
-		MhachBLM.BLM.Burn = tbl.Value.Burn
-		MhachBLM.BLM.Smart_Target = tbl.Value.Smart_Target
-		MhachBLM.BLM.More_Move = tbl.Value.More_Move
-		MhachBLM.Settings.Debug = tbl.Value.Debug
-		MhachBLM.Settings.FuckAnimation = tbl.Value.FuckAnimation
-		MhachBLM.Settings.RedPlayer = tbl.Value.RedPlayer
-		MhachBLM.Settings.Between_the_Aetherial = tbl.Value.Between_the_Aetherial
-		MhachBLM.Settings.ShowNextSkill = tbl.Value.ShowNextSkill
-		MhachBLM.Settings.NewCombo = tbl.Value.NewCombo
-		MhachBLM.Settings.ShowHotBar = tbl.Value.ShowHotBar
-		MhachBLM.Settings.Lock = tbl.Value.Lock
-		MhachBLM.Settings.DotBlackList = tbl.Value.DotBlackList
+		self.BLM.CD = tbl.Value.CD
+		self.BLM.DOT = tbl.Value.DOT
+		self.BLM.AOE = tbl.Value.AOE
+		self.BLM.Potion = tbl.Value.Potion
+		self.BLM.Polyglot = tbl.Value.Polyglot
+		self.BLM.Ley_Lines = tbl.Value.Ley_Lines
+		self.BLM.Manafont = tbl.Value.Manafont
+		self.BLM.Amplifier = tbl.Value.Amplifier
+		self.BLM.Triplecast = tbl.Value.Triplecast
+		self.BLM.Burn = tbl.Value.Burn
+		self.BLM.Smart_Target = tbl.Value.Smart_Target
+		self.BLM.More_Move = tbl.Value.More_Move
+		self.Settings.Debug = tbl.Value.Debug
+		self.Settings.FuckAnimation = tbl.Value.FuckAnimation
+		self.Settings.RedPlayer = tbl.Value.RedPlayer
+		self.Settings.Between_the_Aetherial = tbl.Value.Between_the_Aetherial
+		self.Settings.ShowNextSkill = tbl.Value.ShowNextSkill
+		self.Settings.NewCombo = tbl.Value.NewCombo
+		self.Settings.ShowHotBar = tbl.Value.ShowHotBar
+		self.Settings.Lock = tbl.Value.Lock
+		self.Settings.DotBlackList = tbl.Value.DotBlackList
+		Language = tbl.Value.Language
+		if Language == nil then
+			Language = "CN"
+		end
 	end
 end
 
@@ -600,33 +690,56 @@ local function SaveSettings()
 		Triplecast = true,
 	},
 }
-	tbl.Value.CD = MhachBLM.BLM.CD
-	tbl.Value.DOT = MhachBLM.BLM.DOT
-	tbl.Value.AOE = MhachBLM.BLM.AOE
-	tbl.Value.Potion = MhachBLM.BLM.Potion
-	tbl.Value.Polyglot = MhachBLM.BLM.Polyglot
-	tbl.Value.Ley_Lines = MhachBLM.BLM.Ley_Lines
-	tbl.Value.Manafont = MhachBLM.BLM.Manafont
-	tbl.Value.Amplifier = MhachBLM.BLM.Amplifier
-	tbl.Value.Triplecast = MhachBLM.BLM.Triplecast
-	tbl.Value.Burn = MhachBLM.BLM.Burn
-	tbl.Value.Smart_Target = MhachBLM.BLM.Smart_Target
-	tbl.Value.More_Move = MhachBLM.BLM.More_Move
-	tbl.Value.Debug = MhachBLM.Settings.Debug
-	tbl.Value.FuckAnimation = MhachBLM.Settings.FuckAnimation
-	tbl.Value.RedPlayer = MhachBLM.Settings.RedPlayer
-	tbl.Value.Between_the_Aetherial = MhachBLM.Settings.Between_the_Aetherial
-	tbl.Value.ShowNextSkill = MhachBLM.Settings.ShowNextSkill
-	tbl.Value.NewCombo = MhachBLM.Settings.NewCombo
-	tbl.Value.ShowHotBar = MhachBLM.Settings.ShowHotBar
-	tbl.Value.Lock = MhachBLM.Settings.Lock
-	tbl.Value.DotBlackList = MhachBLM.Settings.DotBlackList
+	tbl.Value.CD = self.BLM.CD
+	tbl.Value.DOT = self.BLM.DOT
+	tbl.Value.AOE = self.BLM.AOE
+	tbl.Value.Potion = self.BLM.Potion
+	tbl.Value.Polyglot = self.BLM.Polyglot
+	tbl.Value.Ley_Lines = self.BLM.Ley_Lines
+	tbl.Value.Manafont = self.BLM.Manafont
+	tbl.Value.Amplifier = self.BLM.Amplifier
+	tbl.Value.Triplecast = self.BLM.Triplecast
+	tbl.Value.Burn = self.BLM.Burn
+	tbl.Value.Smart_Target = self.BLM.Smart_Target
+	tbl.Value.More_Move = self.BLM.More_Move
+	tbl.Value.Debug = self.Settings.Debug
+	tbl.Value.FuckAnimation = self.Settings.FuckAnimation
+	tbl.Value.RedPlayer = self.Settings.RedPlayer
+	tbl.Value.Between_the_Aetherial = self.Settings.Between_the_Aetherial
+	tbl.Value.ShowNextSkill = self.Settings.ShowNextSkill
+	tbl.Value.NewCombo = self.Settings.NewCombo
+	tbl.Value.ShowHotBar = self.Settings.ShowHotBar
+	tbl.Value.Lock = self.Settings.Lock
+	tbl.Value.DotBlackList = self.Settings.DotBlackList
+	tbl.Value.Language = Language
 	FileSave(Settings,tbl)
 end
 
+local function LoadTranslation()
+	local tbl = FileLoad(Translation)
+	if tbl ~= nil and Language ~= nil then
+		self.BLMGUI.Buttons = {  -- 定义按钮及其初始状态
+			{Label = tbl["QT"][1][Language], Enabled = true, Clickable = true},
+			{Label = tbl["QT"][2][Language], Enabled = true, Clickable = true},
+			{Label = tbl["QT"][3][Language], Enabled = true, Clickable = true},
+			{Label = tbl["QT"][4][Language], Enabled = true, Clickable = true},
+			{Label = tbl["QT"][5][Language], Enabled = true, Clickable = true},
+			{Label = tbl["QT"][6][Language], Enabled = true, Clickable = true},
+			{Label = tbl["QT"][7][Language], Enabled = true, Clickable = true},
+			{Label = tbl["QT"][8][Language], Enabled = true, Clickable = true},
+			{Label = tbl["QT"][9][Language], Enabled = true, Clickable = true},
+			{Label = tbl["QT"][10][Language], Enabled = true, Clickable = true},
+			{Label = tbl["QT"][11][Language], Enabled = true, Clickable = true},
+			{Label = tbl["QT"][12][Language], Enabled = true, Clickable = true},
+		}
+		T = tbl
+		languageIndex = getLanguageIndex(Language, LanguageList)
+	end
+	
+end
 --------------------------------------------------------------------------------------------------------------------------------   键位设置
 
-MhachBLM.KeyCodes =
+self.KeyCodes =
 {
 	[1] =  { key = 33, name = "PAGE UP", },
 	[2] =  { key = 35, name = "END", },
@@ -803,7 +916,7 @@ MhachBLM.KeyCodes =
 
 local function IsKeyDown()    --检测按键
 	local Key, Shift, Control, Alt, KeyChanged
-	for k,v in pairs(MhachBLM.KeyCodes) do
+	for k,v in pairs(self.KeyCodes) do
 		if GUI:IsKeyDown(v.key) then
 			Key = v.key
 			KeyName = v.name
@@ -841,7 +954,7 @@ end
 
 local function AdjustKeyName(a)   --调整按键名称，显示组合按键
 	if a.keyBind == nil or a.keyC == nil or a.keyA == nil or a.keyS == nil then return "None" end
-	for k,v in pairs(MhachBLM.KeyCodes) do
+	for k,v in pairs(self.KeyCodes) do
 		if a.keyBind ~= nil and a.keyBind == v.key then
 			return v.name
 		end
@@ -928,21 +1041,8 @@ local function SetValue()  --为本地变量赋值
 	tongxiaoTime = player.gaugetest[2] --剩余秒数*4
 	level = player.level
 	target = TensorCore.mGetTarget()
-	if player.castinginfo.timesincecast <= 100 then
-		if nextAbl ~= nil then
-			if lastcast == nextAbl.id then
-				lastSkill = nextAbl
-				nextAbl = nil
-			end
-		end
-		if nextGCD ~= nil then
-			if lastcast == nextGCD.id then
-				lastSkill = nextGCD
-				nextGCD = nil
-			end
-		end
-	end
 end
+
 -------------------------------------------------------
 
 
@@ -950,10 +1050,10 @@ local function IsSkillGCD(SkillID)
 	if SkillID == nil then
         return false
     end
-    if MhachBLM.Skills[SkillID] == nil then
+    if self.Skills[SkillID] == nil then
         return true -- GCD by default
     end
-    if MhachBLM.Skills[SkillID].IsGCD then
+    if self.Skills[SkillID].IsGCD then
         return true
     end
     return false
@@ -988,12 +1088,12 @@ end
 	end
 end]]
 
-function MhachBLM.HoldAction(id, time)  --hold某个技能一段时间
+function self.HoldAction(id, time)  --hold某个技能一段时间
 	if type(id) ~= "number" then
 		id = id.id
 	end
-	MhachBLM.Skills[id].holdTime = time
-	MhachBLM.DebugPrint(id.."holdtime:"..time)
+	self.Skills[id].holdTime = time
+	self.DebugPrint(id.."holdtime:"..time)
 end
 
 --[[function MhachBLM.MoveHold(id)  --移除技能的hold时间
@@ -1013,44 +1113,42 @@ end
 	end
 end]]
 
-function MhachBLM.MoveHold(id)
+function self.MoveHold(id)
 	if type(id) ~= "number" then
 		id = id.id
 	end
-	MhachBLM.Skills[id].holdTime = 0
-	MhachBLM.DebugPrint(id.."holdtimeEnd")
+	self.Skills[id].holdTime = 0
+	self.DebugPrint(id.."holdtimeEnd")
 end
 
-function MhachBLM.ResetHoldList()  --重置hold列表
+function self.ResetHoldList()  --重置hold列表
 	HoldList = {}
 	HoldSeen = {}
 	
 end
 
-function MhachBLM.PrintHoldList()  --打印hold列表
-	MhachBLM.DebugPrint("HoldList: " .. table.concat(HoldList,","))
+function self.PrintHoldList()  --打印hold列表
+	self.DebugPrint("HoldList: " .. table.concat(HoldList,","))
 end
 
-function MhachBLM.NotHold(id)  --检查技能是否没有hold
+function self.NotHold(id)  --检查技能是否没有hold
 	if type(id) ~= "number" then
 		id = id.id
 	end
-	return MhachBLM.Skills[id].holdTime <= 0
+	return self.Skills[id].holdTime <= 0
 end
 ---------------------------------------------------------------------------------------
-function MhachBLM.PlayerCombo(list)  --用户自定义循环，输入{152, 154}这种
+function self.PlayerCombo(list)  --用户自定义循环，输入{152, 154}这种
 	for i = 1,#list do
 		PlayerSkills:enqueue(list[i])
 	end
 end
 
-function MhachBLM.PlayerComboClear()  --清空用户自定义循环
+function self.PlayerComboClear()  --清空用户自定义循环
 	PlayerSkills:clear()
-	nextAbl = nil
-	nextGCD = nil
 end
 
-function MhachBLM.PlayerComboEmpty() --返回用户循环是否为空
+function self.PlayerComboEmpty() --返回用户循环是否为空
 	return PlayerSkills:isEmpty()
 end
 ---------------------------------------------------------------------------------------
@@ -1061,7 +1159,7 @@ local function LockFace()  --锁定面向
 		speed_S = player:GetSpeed().Strafe
 		speed_W = player:GetSpeed().Walk
 	end
-	if MhachBLM.Skills[-1].inHotbarList then
+	if self.Skills[-1].inHotbarList then
 		if Fire_4.cd >= 0 and Fire_4.cd <= 0.5 and not (GUI:IsKeyDown(87) or GUI:IsKeyDown(65) or GUI:IsKeyDown(83) or GUI:IsKeyDown(63)) then
 			player:SetSpeed(1, 0, 0, 0, 0)
 			SendTextCommand("/automove")
@@ -1078,42 +1176,26 @@ local function LockFace()  --锁定面向
 	end
 end
 
-function MhachBLM.LockFaceOn()
-	MhachBLM.Skills[-1].inHotbarList = true
+function self.LockFaceOn()
+	self.Skills[-1].inHotbarList = true
 end
 
-function MhachBLM.LockFaceOff()
-	MhachBLM.Skills[-1].inHotbarList = false
+function self.LockFaceOff()
+	self.Skills[-1].inHotbarList = false
 	faceX = nil
 	faceY = nil
 	faceZ = nil
 end
 
-function MhachBLM.LockFacePosition(x, y, z)
-	MhachBLM.Skills[-1].inHotbarList = true
+function self.LockFacePosition(x, y, z)
+	self.Skills[-1].inHotbarList = true
 	faceX = x
 	faceY = y
 	faceZ = z
 end
 
 -----------------------------------------------------------------------------------------
---这段代码是一个名为 MhachBLM.IsReady 的函数，主要功能是判断游戏中某个GCD技能（action）当前是否可以使用。
---[[local function IsReady(action)
-    --先过滤掉 “绝对不能释放技能” 的场景
-	if (Fire_4.cd/Fire_4.recasttime) >= 0.99 or Fire_4.cd/Fire_4.recasttime == 0 then  --可以使用GCD技能的时间
-		if moving and not ShunFaBuff() then
-			if action.casttime == 0 then
-				return true
-			else
-				return false
-			end
-		else
-			return true
-		end
-	else
-		return false
-	end
-end]]
+
 
 local function IsReady(action)  --检查技能能否可以进入技能队列
 	if level < action.level then  --没学会技能肯定不让用
@@ -1121,22 +1203,22 @@ local function IsReady(action)  --检查技能能否可以进入技能队列
 	end
 	if TensorCore.mGetTarget() ~= nil then
 		if IsSkillGCD(action.id) then  --是gcd技能
-			return (action:IsReady() or action:IsReady(TensorCore.mGetTarget().id)) and MhachBLM.Skills[action.id].holdTime <= 0
+			return (action:IsReady() or action:IsReady(TensorCore.mGetTarget().id)) and self.Skills[action.id].holdTime <= 0
 		else
-			return (action.cd <= 1 or action:IsReady() or action:IsReady(TensorCore.mGetTarget().id)) and MhachBLM.Skills[action.id].holdTime <= 0
+			return (action.cd <= 1 or action:IsReady() or action:IsReady(TensorCore.mGetTarget().id)) and self.Skills[action.id].holdTime <= 0
 		end
 	else
 		if IsSkillGCD(action.id) then  --是gcd技能
-			return action:IsReady() and MhachBLM.Skills[action.id].holdTime <= 0
+			return action:IsReady() and self.Skills[action.id].holdTime <= 0
 		else
-			return (action.cd <= 1 or action:IsReady()) and MhachBLM.Skills[action.id].holdTime <= 0
+			return (action.cd <= 1 or action:IsReady()) and self.Skills[action.id].holdTime <= 0
 		end
 	end
 end
 
 local function CanCastGCD()  --可以使用gcd技能
 
-	if Fire_4.recasttime - Fire_4.cd <= 200 or (Fire_4.cd/Fire_4.recasttime) == 0 then
+	if (Fire_4.recasttime - Fire_4.cd <= 100 or (Fire_4.cd/Fire_4.recasttime) == 0) then
 		return true
 	end
 
@@ -1146,94 +1228,41 @@ local function CanCastGCD()  --可以使用gcd技能
     return false
 end
 
-local function CanCastABL(time_offset)  --可以使用能力技
-	local time_offset = time_offset or 0
+local function CanCastABL()  --可以使用能力技
 
     local cdmax = Fire_4.cdmax*1000
     local cd = Fire_4.cd*1000
-    local a_lock = 610  --动画锁时间
-    local cast_time = a_lock - 188 --释放tick 156 157 186 187 188
-    -- local can_cast_value = cdmax - 730
-    local can_cast_value = cdmax - 730
-	
+	local time
 
-	if(MhachBLM.Settings.FuckAnimation) then  --如果开启了动画锁，在绿玩时循环能力技通过瞬发窗口插入，hotbar能力技强插
-		
-		if MhachBLM.Settings.RedPlayer then  --红丸循环--添加一个hotbar判定
-			if (Fire_4.cd/Fire_4.recasttime) < 0.9 and (Fire_4.cd/Fire_4.recasttime) > 0.1 then
+	if player.castinginfo.channelingid == 0 then
+		if ForceAbl then
+			return true
+		end
+		if(self.Settings.FuckAnimation) then  --如果开启了动画锁，则可以三插
+
+			if self.Settings.RedPlayer then  --红丸循环--添加一个hotbar判定
+				time = (cd >= 600 and cd <= 700) or (cdmax - cd >= 600 and cdmax - cd <= 700) or (cd >= 1200 and cd <= 1300) or (cdmax - cd >= 200 and cdmax - cd <= 300)
+				if time then
+					return true
+				end
+			else
+				time = (cd >= 600 and cd <= 700) or (cdmax - cd >= 600 and cdmax - cd <= 700) or (cd >= 1200 and cd <= 1300)
+				if time then
+					return true
+				end
+			end
+
+		else   --标准双插
+			time = (cd >= 600 and cd <= 700) or (cdmax - cd >= 600 and cdmax - cd <= 700)
+			if time then
 				return true
 			end
-			return false
-		else--绿完循环
-			InstantWindow = true
-		end
-	else--如果没开动画锁，无论是循环中的能力技还是hotbar均通过瞬发窗口插入
-		InstantWindow = true
-	end--如果瞬发不够的话，还是要强插
-
-    --1.排除不在能力技范围内
-    if (not Fire_4.isoncd) and (not ForceAbl) then
-        return false
-    end
-
-    --2.排除OGCD技能在偏移了后，是否在末尾730ms内
-    if cdmax - (cd+time_offset) < 730 and (not ForceAbl) then
-        return false
-    end
-
-    --3.确保技能释放大于动画锁-188,实现提前缓存输入技能
-
-    if TimeSince(lastABLTime) <= cast_time and (not ForceAbl) then
-        return false
-    end
-
-    --4.防止重复缓存输入，（ogcdtime成立，但是actionid没有变或者变了但是没更新）
-    if TimeSince(ablTickTime) <= 400 and TimeSince(lastABLTime) > 300 and (not ForceAbl) then
-        return false
-    end
-
-    --防止在咏唱时输入
-    if player.castinginfo.channelingid ~= 0 then
-        if player.castinginfo.channeltime < player.castinginfo.casttime - 0.5 and (not ForceAbl) then
-            return false
-        end
-    end
-
-	if ForceAbl then
-		return true
+		end--如果瞬发不够的话，还是要强插
 	end
 
-    return true
-end
-
-local function AblCheck(usehotbar)  --这个是检查能否插入能力技的  usehotbar=false 循环中的能力技  usehotbar=true hotbar的能力技
-	if(MhachBLM.Settings.FuckAnimation) then  --如果开启了动画锁，在绿玩时循环能力技通过瞬发窗口插入，hotbar能力技强插
-		if MhachBLM.Settings.RedPlayer then  --红丸循环
-			if (Fire_4.cd/Fire_4.recasttime) <= 0.9 and (Fire_4.cd/Fire_4.recasttime) >= 0.1 then
-				return true
-			end
-		else  --绿完循环
-			if usehotbar and (Fire_4.cd/Fire_4.recasttime) <= 0.9 and (Fire_4.cd/Fire_4.recasttime) >= 0.1 then
-				return true
-			else
-				InstantWindow = true
-				return false
-			end
-		end
-	else                  --如果没开动画锁，无论是循环中的能力技还是hotbar均通过瞬发窗口插入
-		if (Fire_4.cd/Fire_4.recasttime) <= 0.76 and (Fire_4.cd/Fire_4.recasttime) >= 0.24 then
-			return true
-		else
-			InstantWindow = true
-			return false
-		end
-	end  --如果瞬发不够的话，还是要强插
 	return false
 end
 
-local function CanLockFace()  --检查是否可以锁定面向，避免在释放技能时锁定面向
-	
-end
 
 local function MOTargetSet()  --mo目标设置
 	local allys = TensorCore.getEntityGroupList("Party")
@@ -1257,53 +1286,55 @@ local function MOTargetSet()  --mo目标设置
 end
 
 --这段代码是一个名为MhachBLM.Action的函数，主要功能是执行一个 "动作"(如游戏中的技能、法术等) 并指定目标。它会先验证动作和目标的有效性，检查玩家与目标的距离是否在动作的有效范围内，最后执行这个动作。
-function MhachBLM.Action(action, t)
+function self.Action(action, t)
+	
 	if type(action) == "number" then  --将传入的动作参数统一格式
         action = ActionList:Get(1, action)  --如果传入的action是数字 (可能是动作 ID)，就通过ActionList:Get(1, action)把它转换为完整的动作对象 (包含动作名称、范围等信息)。
     end
-    if (not (IsSkillGCD(action.id) or MhachBLM.Skills[action.id].tag == "Target")) or (not t) then  --设置默认目标
+	--t = t or self.TargetSet(self.Skills[action.id].tag)
+	if t == nil then
+		t = TensorCore.mGetTarget()
+	end
+    if (not (IsSkillGCD(action.id) or self.Skills[action.id].tag == "Target")) or (not t) then  --设置默认目标
         t = player
     end
 
-	if IsSkillGCD(action.id) then
-		nextGCD = action
-		gcdTickTime = Now()
-	else
-		nextAbl = action
-		ablTickTime = Now()	
-	end
 	--SendTextCommand("/ac " .. AutoAttack)
 	if t.distance2d <= action.range or t == player then
 		if IsSkillGCD(action.id) then   --GCD技能处理
-			if CanCastGCD() then
-				MhachBLM.DebugPrint("Casting: " .. action.name .. "Target:" .. t.name)
-        		return action:Cast(t.id)
-			end
+			
+			self.DebugPrint("Casting: " .. action.name .. "Target:" .. t.name)
+			gcdTickTime = Now()
+			return action:Cast(t.id)
+			
 		else   --能力技处理
-			if CanCastABL() then
-				MhachBLM.DebugPrint("Casting: " .. action.name .. "Target:" .. t.name)
-				InstantWindow = false
-				if ForceAbl or MhachBLM.Settings.RedPlayer then
-					if MhachBLM.Skills[action.id].tag == "MO" then
-						if MOTargetSet() then
-							return action:Cast(MOTargetSet())
-						end
-						--return SendTextCommand("/ac " .. action.name .. " <mo>")
-					else
-						return SendTextCommand("/ac " .. action.name)
-					end
-				else
-					if MhachBLM.Skills[action.id].tag == "MO" and MOTargetSet() then
-						return action:Cast(MOTargetSet())
-					else
-						return action:Cast(t.id)
-					end
-				end
+			
+			ablTickTime = Now()
+			if ForceAbl then
 				ForceAbl = false
-				--ForceAbl = false
-				--SendTextCommand("/ac " .. action.name)
-				--return SendTextCommand("/ac " .. action.name)
+				self.DebugPrint("ForceCasting: " .. action.name .. "Target:" .. t.name)
+				if self.Skills[action.id].tag == "MO" then
+					if MOTargetSet() then
+						return action:Cast(MOTargetSet())
+					end
+					--return SendTextCommand("/ac " .. action.name .. " <mo>")
+				else
+					return SendTextCommand("/ac " .. action.name)
+				end
+			else
+				ForceAbl = false
+				self.DebugPrint("WaveCasting: " .. action.name .. "Target:" .. t.name)
+				if self.Skills[action.id].tag == "MO" and MOTargetSet() then
+					return action:Cast(MOTargetSet())
+				else
+					return action:Cast(t.id)
+				end
 			end
+			
+			--ForceAbl = false
+			--SendTextCommand("/ac " .. action.name)
+			--return SendTextCommand("/ac " .. action.name)
+			
 
 		end
 	end
@@ -1317,7 +1348,7 @@ local function UpdateTimer()
 		fpsTime = 0
 	end
 	for _, id in ipairs(sortedIds) do
-		local skill = MhachBLM.Skills[id]
+		local skill = self.Skills[id]
 		skill.holdTime = skill.holdTime - fpsTime
 		skill.delayTime = skill.delayTime - fpsTime
 		if skill.holdTime < 0 then
@@ -1328,11 +1359,29 @@ local function UpdateTimer()
 		end
 	end
 
-
-	if Player.castinginfo.lastcastid ~= lastSkill and not IsSkillGCD(Player.castinginfo.lastcastid) then
-		lastGCDTime = Now()
+	if not GCDSkills:isEmpty() then
+		if lastcast == GCDSkills:peek() and player.castinginfo.timesincecast <= 200 then
+			GCDSkills:removeAll(lastcast)
+			lastGCDTime = Now()
+		end
 	end
-	lastSkill = Player.castinginfo.lastcastid
+	if not OGCDSkills:isEmpty() then
+		if lastcast == OGCDSkills:peek() and player.castinginfo.timesincecast <= 200 then
+			OGCDSkills:removeAll(lastcast)
+			lastABLTime = Now()
+		end
+	end
+	if not HotbarSkills:isEmpty() then
+		if lastcast == HotbarSkills:peek() and player.castinginfo.timesincecast <= 200 then
+			HotbarSkills:removeAll(lastcast)
+			self.Skills[lastcast].inHotbarList = false
+		end
+	end
+	if not PlayerSkills:isEmpty() then
+		if lastcast == PlayerSkills:peek() and player.castinginfo.timesincecast <= 200 then
+			PlayerSkills:removeAll(lastcast)
+		end
+	end
 
 end
 --------------------------------------------------------------------------------------------------------------------
@@ -1394,73 +1443,99 @@ end
 
 
 
-local function TargetSet()  --目标设置器
-	if MhachBLM.HasTarget() then
+function self.TargetSet(tag)  --目标设置器
+	tag = tag or "Default"
+	if self.HasTarget() then
 		enemys = TensorCore.entityList("alive,attackable,incombat,maxdistance=25")
 		if enemys then
-			MhachBLM.Target.aoe_num = FindTargetsNum(enemys)
+			self.Target.aoe_num = FindTargetsNum(enemys)
 		end
 	else
-		MhachBLM.Target.aoe_num = 0
+		self.Target.aoe_num = 0
 	end
 
+	--[[if tag == "DOT" then
+		local t = nil
+		if self.BLM.Smart_Target then  --智能目标
+			return FindDotTarget(enemys)
+		else
+			t = TensorCore.mGetTarget()
+			if MissinMhachBLMyBuff(t, DotBuffs) then
+				return TensorCore.mGetTarget()
+			end
+		end
+	end
+
+	if (tag == "AOE" or tag == "AOEDOT") and self.Target.aoe_num >= 2 and self.BLM.Smart_Target and self.BLM.AOE then
+		local t = nil
+		if enemys then
+			t, self.Target.aoe_num = FindMaxTargetsInRange(enemys,5)
+		end
+		return t
+	end
+	return TensorCore.mGetTarget()]]
 end
 
 
 local function AOE_Combo()  --AOE循环，已适配全等级
-	if (not MhachBLM.BLM.Burn) and MhachBLM.BLM.AOE then
+	if (not self.BLM.Burn) and self.BLM.AOE then
 		local t = nil
-		if MhachBLM.Target.aoe_num >= 2 then
-			if MhachBLM.BLM.Smart_Target then
+		if self.Target.aoe_num >= 2 then
+			if self.BLM.Smart_Target then
 				if enemys then
-					t, MhachBLM.Target.aoe_num = FindMaxTargetsInRange(enemys,5)
+					t, self.Target.aoe_num = FindMaxTargetsInRange(enemys,5)
 				end
 			else
 				t = TensorCore.mGetTarget()
 			end
 		end
 
-		if level <=100 and level >= 58 and MhachBLM.Target.aoe_num >= 2 then
+		if level <=100 and level >= 58 and self.Target.aoe_num >= 2 then
 
 			if fire_ice >= 0 then  --火阶段
-				if Yao_Xing.highlighted == 1 and IsReady(Yao_Xing) then return Yao_Xing, t end
-				if mp >= 800 and IsReady(He_Bao) then return He_Bao, t end
-				if mp < 800 and IsReady(Xing_Ling) and Xing_Ling:IsReady() and Yao_Xing.highlighted == 0 then return Xing_Ling, player end  --火转冰
+				if Yao_Xing.highlighted == 1 and IsReady(Yao_Xing) then return self.JoinACR(Yao_Xing.id), t end
+				if mp >= 800 and IsReady(He_Bao) then return self.JoinACR(He_Bao.id), t end
+
+				if mp < 800 and IsReady(Xing_Ling) and Xing_Ling:IsReady() and Yao_Xing.highlighted == 0 then self.JoinACR(Xing_Ling.id) end  --火转冰
 			else  --冰阶段
-				if MhachBLM.Target.aoe_num >= 3 then  --三目标
-					if ice_heart < 3 and IsReady(Ice_AOE) then return Ice_AOE, t end
+				if self.Target.aoe_num >= 3 then  --三目标
+					if ice_heart < 3 and IsReady(Ice_AOE) then return self.JoinACR(Ice_AOE.id), t end
 
 				else  --双目标
-					if ice_heart < 3 and IsReady(Ice_4) then return Ice_4, t end
+					if ice_heart < 3 and IsReady(Ice_4) then return self.JoinACR(Ice_4.id), t end
 				end
-				if tongxiao >= 1 and ice_heart == 3 and MhachBLM.BLM.Polyglot and IsReady(Hui_Zhuo) and not Xing_Ling:IsReady() then return Hui_Zhuo, t end
-				if ice_heart == 3 and Xing_Ling:IsReady() and IsReady(Xing_Ling) then return Xing_Ling, player end
+				if tongxiao >= 1 and ice_heart == 3 and self.BLM.Polyglot and IsReady(Hui_Zhuo) and not Xing_Ling:IsReady() then return self.JoinACR(Hui_Zhuo.id), t end
+				if ice_heart == 3 and Xing_Ling:IsReady() and IsReady(Xing_Ling) then self.JoinACR(Xing_Ling.id) end
 			end
 
 
 
 		end
+		if level >= 30 then
+			if mp <800 and fire_ice >= 1 and IsReady(Mo_Quan) and Mo_Quan.cd <= 1 and self.BLM.Manafont == true and self.BLM.CD == true then
+				self.JoinACR(Mo_Quan.id)
+			end
+		end
 
-		if level >= 50 and level <= 57 and MhachBLM.Target.aoe_num >= 2 then
-
+		if level >= 50 and level <= 57 and self.Target.aoe_num >= 2 then
 			if fire_ice >= 0 then  --火阶段
-				if MhachBLM.Target.aoe_num >= 3 then --火阶段三目标
-					if mp >= 3800 and IsReady(Fire_2) then return Fire_2, t end
-					if mp >= 800 and IsReady(He_Bao) then return He_Bao, t end
-					if mp < 800 and IsReady(Xing_Ling) and Xing_Ling:IsReady() then return Xing_Ling, player end  --火转冰
+				if self.Target.aoe_num >= 3 then --火阶段三目标
+					if mp >= 3800 and IsReady(Fire_2) then return self.JoinACR(Fire_2.id), t end
+					if mp >= 800 and IsReady(He_Bao) then return self.JoinACR(He_Bao.id), t end
+					if mp < 800 and IsReady(Xing_Ling) and Xing_Ling:IsReady() then self.JoinACR(Xing_Ling.id) end  --火转冰
 				else  --双目标
-					if mp >= 2400 and IsReady(Fire_1) then return Fire_1, t end
-					if mp >= 800 and IsReady(He_Bao) then return He_Bao, t end
-					if mp < 800 and IsReady(Ice_3) then return Ice_3, t end  --火转冰
+					if mp >= 2400 and IsReady(Fire_1) then return self.JoinACR(Fire_1.id), t end
+					if mp >= 800 and IsReady(He_Bao) then return self.JoinACR(Fire_1.id), t end
+					if mp < 800 and IsReady(Ice_3) then return self.JoinACR(Ice_3.id), t end  --火转冰
 				end
 
 			else  --冰阶段
-				if MhachBLM.Target.aoe_num >= 3 then  --冰阶段三目标
-					if IsReady(Ice_AOE) and not Xing_Ling:IsReady() then return Ice_AOE, t end
-					if IsReady(Xing_Ling) and Xing_Ling:IsReady() then return Xing_Ling, player end  --冰转火
+				if self.Target.aoe_num >= 3 then  --冰阶段三目标
+					if IsReady(Ice_AOE) and not Xing_Ling:IsReady() then return self.JoinACR(Ice_AOE.id), t end
+					if IsReady(Xing_Ling) and Xing_Ling:IsReady() then self.JoinACR(Xing_Ling.id) end  --冰转火
 				else  --双目标
-					if mp < 10000 and IsReady(Ice_AOE) then return Ice_AOE, t end
-					if mp >= 10000 and IsReady(Fire_3) then return Fire_3, t end
+					if mp < 10000 and IsReady(Ice_AOE) then return self.JoinACR(Ice_AOE.id), t end
+					if mp >= 10000 and IsReady(Fire_3) then return self.JoinACR(Fire_3.id), t end
 				end
 
 			end
@@ -1468,98 +1543,94 @@ local function AOE_Combo()  --AOE循环，已适配全等级
 
 		end
 
-		if level >= 40 and level <= 49 and MhachBLM.Target.aoe_num >= 2 then
+		if level >= 40 and level <= 49 and self.Target.aoe_num >= 2 then
 
-			if MhachBLM.Target.aoe_num >= 4 then  --四目标
-				if IsReady(Ice_AOE) then return Ice_AOE, t end
+			if self.Target.aoe_num >= 4 then  --四目标
+				if IsReady(Ice_AOE) then return self.JoinACR(Ice_AOE.id), t end
 			else  --双目标
 				if fire_ice >= 0 then  --火阶段
-					if mp >= 1600 and IsReady(Fire_1) then return Fire_1, t end
-					if mp < 1600 and IsReady(Ice_3) then return Ice_3, t end
+					if mp >= 1600 and IsReady(Fire_1) then return self.JoinACR(Fire_1.id), t end
+					if mp < 1600 and IsReady(Ice_3) then return self.JoinACR(Ice_3.id), t end
 				else  --冰阶段
-					if mp < 10000 and IsReady(Ice_AOE) then return Ice_AOE, t end
-					if mp >= 10000 and IsReady(Fire_3) then return Fire_3, t end
+					if mp < 10000 and IsReady(Ice_AOE) then return self.JoinACR(Ice_AOE.id), t end
+					if mp >= 10000 and IsReady(Fire_3) then return self.JoinACR(Fire_3.id), t end
 				end
 			end
 
 		end
 
-		if level >= 35 and level <= 40 and MhachBLM.Target.aoe_num >= 4 then
+		if level >= 35 and level <= 40 and self.Target.aoe_num >= 4 then
 
 			if fire_ice >= 0 then
-				if mp >= 3000 and IsReady(Fire_2) then return Fire_2, t end
-				if mp < 3000 and Xing_Ling:IsReady() and IsReady(Xing_Ling) then return Xing_Ling, player end
+				if mp >= 3000 and IsReady(Fire_2) then return self.JoinACR(Fire_2.id), t end
+				if mp < 3000 and Xing_Ling:IsReady() and IsReady(Xing_Ling) then self.JoinACR(Xing_Ling.id) end
 			else
-				if IsReady(Ice_2) and not Xing_Ling:IsReady() then return Ice_2, t end
-				if Xing_Ling:IsReady() and IsReady(Xing_Ling) then return Xing_Ling, player end
+				if IsReady(Ice_2) and not Xing_Ling:IsReady() then return self.JoinACR(Ice_2.id), t end
+				if Xing_Ling:IsReady() and IsReady(Xing_Ling) then self.JoinACR(Xing_Ling.id) end
 			end
 
 		end
 
-		if level >= 18 and level <= 34 and MhachBLM.Target.aoe_num >= 3 then
+		if level >= 18 and level <= 34 and self.Target.aoe_num >= 3 then
 			if fire_ice >= 0 then
-				if mp >= 3000 and IsReady(Fire_2) then return Fire_2, t end
-				if mp < 3000 and IsReady(Xing_Ling) and Xing_Ling:IsReady() then return Xing_Ling, player end
+				if mp >= 3000 and IsReady(Fire_2) then return self.JoinACR(Fire_2.id), t end
+				if mp < 3000 and IsReady(Xing_Ling) and Xing_Ling:IsReady() then self.JoinACR(Xing_Ling.id) end
 			else
-				if mp < 10000 and IsReady(Ice_2) then return Ice_2, t end
-				if mp >= 10000 and IsReady(Xing_Ling) and Xing_Ling:IsReady() then return Xing_Ling, player end
+				if mp < 10000 and IsReady(Ice_2) then return self.JoinACR(Ice_2.id), t end
+				if mp >= 10000 and IsReady(Xing_Ling) and Xing_Ling:IsReady() then self.JoinACR(Xing_Ling.id) end
 			end
 		end
 
-		if level <= 17 and level >= 12 and MhachBLM.Target.aoe_num >= 3 then
-			if MhachBLM.Target.aoe_num >= 4 then
-				if IsReady(Ice_2) then return Ice_2, t end
+		if level <= 17 and level >= 12 and self.Target.aoe_num >= 3 then
+			if self.Target.aoe_num >= 4 then
+				if IsReady(Ice_2) then return self.JoinACR(Ice_2.id), t end
 			else
 				if fire_ice >= 0  then
-					if mp >= 1600 and IsReady(Fire_1) then return Fire_1, t end
-					if mp < 1600 and IsReady(Xing_Ling) and Xing_Ling:IsReady() then return Xing_Ling, player end
+					if mp >= 1600 and IsReady(Fire_1) then return self.JoinACR(Fire_1.id), t end
+					if mp < 1600 and IsReady(Xing_Ling) and Xing_Ling:IsReady() then self.JoinACR(Xing_Ling.id) end
 				else
-					if mp < 10000 and IsReady(Ice_2) then return Ice_2, t end
-					if mp >= 10000 and IsReady(Xing_Ling) and Xing_Ling:IsReady() then return Xing_Ling, player end
+					if mp < 10000 and IsReady(Ice_2) then return self.JoinACR(Ice_2.id), t end
+					if mp >= 10000 and IsReady(Xing_Ling) and Xing_Ling:IsReady() then self.JoinACR(Xing_Ling.id) end
 				end
 			end
 		end
-		return nil, nil
+		return false, nil
 	end
-	return nil, nil
+	return false, nil
 end
 
 local function Polyglot_Combo()  --通晓循环，已适配全等级
-	if (not MhachBLM.BLM.Burn) and MhachBLM.BLM.Polyglot then
-		if  ((not MhachBLM.BLM.AOE) or MhachBLM.Target.aoe_num <= 1) then
+	if (not self.BLM.Burn) and self.BLM.Polyglot then
+		if  ((not self.BLM.AOE) or self.Target.aoe_num <= 1) then
 			if level >= 98 then
-				if tongxiao >= 3 and tongxiaoTime <= 50 and IsReady(Yi_Yan) then return Yi_Yan, target end
-				if tongxiao >= 2 and Xiang_Shu.cd <= 6 and IsReady(Yi_Yan) then return Yi_Yan, target end
-				if tongxiao >= 1 and (not MhachBLM.BLM.More_Move) and BurnTime(target) and IsReady(Yi_Yan) then return Yi_Yan, target end  --爆发期打异言
+				if tongxiao >= 3 and (tongxiaoTime <= 50 or Xiang_Shu.cd <= 5) and IsReady(Yi_Yan) then return self.JoinACR(Yi_Yan.id), target end
+				if tongxiao >= 1 and (not self.BLM.More_Move) and BurnTime(target) and IsReady(Yi_Yan) then return self.JoinACR(Yi_Yan.id), target end  --爆发期打异言
 			elseif level >= 86 then
-				if tongxiao >= 2 and tongxiaoTime <= 50 and IsReady(Yi_Yan) then return Yi_Yan, target end
-				if tongxiao >= 1 and Xiang_Shu.cd <= 6 and IsReady(Yi_Yan) then return Yi_Yan, target end
-				if tongxiao >= 1 and (not MhachBLM.BLM.More_Move) and BurnTime(target) and IsReady(Yi_Yan) then return Yi_Yan, target end  --爆发期打异言
+				if tongxiao >= 2 and (tongxiaoTime <= 50 or Xiang_Shu.cd <= 5) and IsReady(Yi_Yan) then return self.JoinACR(Yi_Yan.id), target end
+				if tongxiao >= 1 and (not self.BLM.More_Move) and BurnTime(target) and IsReady(Yi_Yan) then return self.JoinACR(Yi_Yan.id), target end  --爆发期打异言
 			elseif level >= 80 then  --没有详述
-				if tongxiao >= 2 and tongxiaoTime <= 50 and IsReady(Yi_Yan) then return Yi_Yan, target end
-				if tongxiao >= 1 and (not MhachBLM.BLM.More_Move) and BurnTime(target) and IsReady(Yi_Yan) then return Yi_Yan, target end  --爆发期打异言
+				if tongxiao >= 2 and tongxiaoTime <= 50 and IsReady(Yi_Yan) then return self.JoinACR(Yi_Yan.id), target end
+				if tongxiao >= 1 and (not self.BLM.More_Move) and BurnTime(target) and IsReady(Yi_Yan) then return self.JoinACR(Yi_Yan.id), target end  --爆发期打异言
 			elseif level >= 70 then  --秽浊
-				if tongxiao >= 1 and tongxiaoTime <= 50 and IsReady(Hui_Zhuo) then return Hui_Zhuo, target end
-				if tongxiao >= 1 and BurnTime(target) and IsReady(Hui_Zhuo) then return Hui_Zhuo, target end  --爆发期
+				if tongxiao >= 1 and tongxiaoTime <= 50 and IsReady(Hui_Zhuo) then return self.JoinACR(Hui_Zhuo.id), target end
+				if tongxiao >= 1 and BurnTime(target) and IsReady(Hui_Zhuo) then return self.JoinACR(Hui_Zhuo.id), target end  --爆发期
 			end
-			return nil ,nil
+			return false ,nil
 		end
-		if MhachBLM.BLM.AOE and MhachBLM.Target.aoe_num >= 2 then
+		if self.BLM.AOE and self.Target.aoe_num >= 2 then
 			if level >= 98 then
-				if tongxiao >= 3 and tongxiaoTime <= 50 and IsReady(Hui_Zhuo) then return Hui_Zhuo, target end
-				if tongxiao >= 2 and Xiang_Shu.cd <= 6 and IsReady(Hui_Zhuo) then return Hui_Zhuo, target end
+				if tongxiao >= 3 and (tongxiaoTime <= 50 or Xiang_Shu.cd <= 5) and IsReady(Hui_Zhuo) then return self.JoinACR(Hui_Zhuo.id), target end
 			elseif level >= 86 then
-				if tongxiao >= 2 and tongxiaoTime <= 50 and IsReady(Hui_Zhuo) then return Hui_Zhuo, target end
-				if tongxiao >= 1 and Xiang_Shu.cd <= 6 and IsReady(Hui_Zhuo) then return Hui_Zhuo, target end
+				if tongxiao >= 2 and (tongxiaoTime <= 50 or Xiang_Shu.cd <= 5) and IsReady(Hui_Zhuo) then return self.JoinACR(Hui_Zhuo.id), target end
 			elseif level >= 80 then  --没有详述
-				if tongxiao >= 2 and tongxiaoTime <= 50 and IsReady(Hui_Zhuo) then return Hui_Zhuo, target end
+				if tongxiao >= 2 and tongxiaoTime <= 50 and IsReady(Hui_Zhuo) then return self.JoinACR(Hui_Zhuo.id), target end
 			elseif level >= 70 then  --秽浊
-				if tongxiao >= 1 and tongxiaoTime <= 50 and IsReady(Hui_Zhuo) then return Hui_Zhuo, target end
+				if tongxiao >= 1 and tongxiaoTime <= 50 and IsReady(Hui_Zhuo) then return self.JoinACR(Hui_Zhuo.id), target end
 			end
 		end
-		return nil ,nil
+		return false ,nil
 	end
-	return nil ,nil
+	return false ,nil
 end
 
 local function DOT_Combo()  --dot循环，已适配全等级
@@ -1581,7 +1652,7 @@ local function DOT_Combo()  --dot循环，已适配全等级
 	end
 	return nil ,nil]]
 	local t = nil
-	if MhachBLM.BLM.Smart_Target then  --智能目标
+	if self.BLM.Smart_Target then  --智能目标
 		t = FindDotTarget(enemys)
 	else
 		t = TensorCore.mGetTarget()
@@ -1589,40 +1660,40 @@ local function DOT_Combo()  --dot循环，已适配全等级
 			t = nil
 		end
 	end
-	if t ~= nil and not MhachBLM.Settings.DotBlackList[t.id] then
-		if MhachBLM.BLM.DOT and not MhachBLM.BLM.Burn and TensorCore.hasBuff(player, 3870) and MhachBLM.Target.aoe_num <= 1 then
+	if t ~= nil and not self.Settings.DotBlackList[t.id] then
+		if self.BLM.DOT and (not self.BLM.Burn) and TensorCore.hasBuff(player, 3870) and ((not self.BLM.AOE) or self.Target.aoe_num <= 1)then
 			if level >= 92 then
-				if IsReady(DOT_3) then return DOT_3, t end
+				if IsReady(DOT_3) then return self.JoinACR(DOT_3.id), t end
 			elseif level >= 45 then
-				if IsReady(DOT_2) then return DOT_2, t end
+				if IsReady(DOT_2) then return self.JoinACR(DOT_2.id), t end
 			elseif level >= 6 then
-				if IsReady(DOT_1) then return DOT_1, t end
+				if IsReady(DOT_1) then return self.JoinACR(DOT_1.id), t end
 			end
-			return nil ,nil
+			return false ,nil
 		end
 
-		if MhachBLM.BLM.DOT and not MhachBLM.BLM.Burn and TensorCore.hasBuff(player, 3870) and MhachBLM.Target.aoe_num >= 2 then
+		if self.BLM.DOT and self.BLM.AOE and (not self.BLM.Burn) and TensorCore.hasBuff(player, 3870) and self.Target.aoe_num >= 2 then
 			if level >= 92 and fire_ice <= 0 then
-				if IsReady(DOT_AOE_3) then return DOT_AOE_3, t end
+				if IsReady(DOT_AOE_3) then return self.JoinACR(DOT_AOE_3.id), t end
 			elseif level >= 64 and fire_ice <= 0 then
-				if IsReady(DOT_AOE_2) then return DOT_AOE_2, t end
+				if IsReady(DOT_AOE_2) then return self.JoinACR(DOT_AOE_2.id), t end
 			elseif level >= 26 and fire_ice <= 0 then
-				if IsReady(DOT_AOE_1) then return DOT_AOE_1, t end
+				if IsReady(DOT_AOE_1) then return self.JoinACR(DOT_AOE_1.id), t end
 			end
-			return nil, nil
+			return false, nil
 		end
 	end
 
-	return nil, nil
+	return false, nil
 
 end
 
 local function Fire_Ice()  --火转冰，已适配全等级
-	if ((not MhachBLM.BLM.AOE) or MhachBLM.Target.aoe_num <= 1) and not MhachBLM.BLM.Burn then
-		if level >= 72 then
-			local canuse = ((Mo_Quan.cd >= 1 and Mo_Quan.cd <= 98) or (MhachBLM.BLM.Manafont == false or MhachBLM.BLM.CD == false) or not IsReady(Mo_Quan)) and IsReady(Ji_Ke) and IsReady(Xing_Ling) and Xing_Ling:IsReady() and fire_ice >= 1 and mp < 800 and Yao_Xing.highlighted == 0
+	if ((not self.BLM.AOE) or self.Target.aoe_num <= 1) and not self.BLM.Burn then
+		if level >= 100 then
+			local canuse = ((Mo_Quan.cd >= 1 and Mo_Quan.cd <= 98) or (self.BLM.Manafont == false or self.BLM.CD == false) or not IsReady(Mo_Quan)) and IsReady(Ji_Ke) and IsReady(Xing_Ling) and Xing_Ling:IsReady() and fire_ice >= 1 and mp < 800 and Yao_Xing.highlighted == 0
 			if Ji_Ke:IsReady() and canuse and beilun < 25 and not ShunFaBuff() then
-				return Ji_Ke, player
+				self.JoinACR(Ji_Ke.id)
 			end
 			--[[if Ji_Ke.cd <= 1.5 and canuse and beilun < 25 and not ShunFaBuff() and tongxiao>= 1 and MhachBLM.BLM.Triplecastnot and not MhachBLM.BLM.More_Move then  --差一点即刻好就给个瞬发但是必须是异言
 				InstantWindow =true
@@ -1631,291 +1702,358 @@ local function Fire_Ice()  --火转冰，已适配全等级
 				MhachBLM.Action(San_Lian, player)
 			end]]
 			if (ShunFaBuff()) and canuse then
-				return Xing_Ling, player
+				self.JoinACR(Xing_Ling.id)
 			end
 			if Ji_Ke.cd <= 1 and canuse then
-				return Xing_Ling, player
+				self.JoinACR(Xing_Ling.id)
 			end
 			if Ji_Ke:IsReady() and IsReady(Ji_Ke) and mp < 800 and fire_ice <= -1 and Xing_Ling.cd >= 3.2 then
-				return Ji_Ke, player
+				self.JoinACR(Ji_Ke.id)
 			end
-			if mp < 800 and fire_ice >= 1 and ((Mo_Quan.cd >= 1 and Mo_Quan.cd <= 98) or (MhachBLM.BLM.Manafont == false or MhachBLM.BLM.CD == false) or not IsReady(Mo_Quan)) and IsReady(Ice_3) then return Ice_3, target end
-			if ShunFaBuff() and fire_ice >= -2 and mp < 800 and IsReady(Ice_3) and ((Mo_Quan.cd >= 1 and Mo_Quan.cd <= 98) or (MhachBLM.BLM.Manafont == false or MhachBLM.BLM.CD == false) or not IsReady(Mo_Quan)) then return Ice_3, target end
+			if mp < 800 and fire_ice >= 1 and ((Mo_Quan.cd >= 1 and Mo_Quan.cd <= 98) or (self.BLM.Manafont == false or self.BLM.CD == false) or not IsReady(Mo_Quan)) and IsReady(Ice_3) then return self.JoinACR(Ice_3.id), target end
+			if ShunFaBuff() and fire_ice >= -2 and mp < 800 and IsReady(Ice_3) and ((Mo_Quan.cd >= 1 and Mo_Quan.cd <= 98) or (self.BLM.Manafont == false or self.BLM.CD == false) or not IsReady(Mo_Quan)) then return self.JoinACR(Ice_3.id), target end
 		elseif level >= 35 then
-			if mp < 800 and fire_ice >= 1 and ((Mo_Quan.cd >= 1 and Mo_Quan.cd <= 98) or (MhachBLM.BLM.Manafont == false or MhachBLM.BLM.CD == false)) and IsReady(Ice_3) then return Ice_3, target end
+			if mp < 800 and fire_ice >= 1 and ((Mo_Quan.cd >= 1 and Mo_Quan.cd <= 98) or (self.BLM.Manafont == false or self.BLM.CD == false)) and IsReady(Ice_3) then return self.JoinACR(Ice_3.id), target end
 
 		elseif level >= 4 then
-			if mp < 1600 and fire_ice >= 1 and IsReady(Xing_Ling) and Xing_Ling:IsReady() then return Xing_Ling, player end
+			if mp < 1600 and fire_ice >= 1 and IsReady(Xing_Ling) and Xing_Ling:IsReady() then self.JoinACR(Xing_Ling.id) end
 		elseif level <= 3 then
-			if mp < 1600 and fire_ice >= 1 and IsReady(Ice_1) then return Ice_1, target end
+			if mp < 1600 and fire_ice >= 1 and IsReady(Ice_1) then return self.JoinACR(Ice_1.id), target end
 		end
-		return nil ,nil
+		return false ,nil
 	end
-	return nil ,nil
+	return false ,nil
 end
 
 local function Ice_Fire()  --冰转火，已适配全等级
-	if ((not MhachBLM.BLM.AOE) or MhachBLM.Target.aoe_num <= 1) and not MhachBLM.BLM.Burn then
+	if ((not self.BLM.AOE) or self.Target.aoe_num <= 1) and not self.BLM.Burn then
 		if level >= 90 then
 			if fire_ice <= -1 and Xing_Ling:IsReady() and Bei_Lun.highlighted == 0 and ice_heart == 3 and mp == 10000 and IsReady(Xing_Ling) then
-				return Xing_Ling, player
+				self.JoinACR(Xing_Ling.id)
 			end
 			if fire_ice <= -1 and ice_heart == 3 and Bei_Lun.highlighted == 0 and (Xing_Ling.cd > 0 or not TensorCore.hasBuff(player, 165)) and IsReady(Fire_3) then
-				return Fire_3, target
+				return self.JoinACR(Fire_3.id), target
 			end
 		elseif level >= 35 then
-			if fire_ice <= -1 and (mp >= 10000 or ice_heart == 3) and IsReady(Fire_3) then return Fire_3, target end
+			if fire_ice <= -1 and (mp >= 10000 or ice_heart == 3) and IsReady(Fire_3) then return self.JoinACR(Fire_3.id), target end
 		elseif level >= 4 then
-			if fire_ice <= -1 and mp >= 10000 and IsReady(Xing_Ling) and Xing_Ling:IsReady() then return Xing_Ling, player end
+			if fire_ice <= -1 and mp >= 10000 and IsReady(Xing_Ling) and Xing_Ling:IsReady() then self.JoinACR(Xing_Ling.id) end
 		elseif level <= 3 then
-			if fire_ice <= -1 and mp >= 10000 and IsReady(Fire_1) then return Fire_1, target end
+			if fire_ice <= -1 and mp >= 10000 and IsReady(Fire_1) then return self.JoinACR(Fire_1.id), target end
 		end
-		return nil , nil
+		return false , nil
 	end
-	return nil , nil
+	return false , nil
 end
 
 local function LeyLines() --黑魔纹,已适配全等级，需要调gcd优化----------------------------------------------------------------------------
-	if MhachBLM.BLM.Ley_Lines and MhachBLM.BLM.CD then
+	if self.BLM.Ley_Lines and self.BLM.CD then
 		if level >= 52 then
-			if (not TensorCore.hasBuff(player, 737)) and Mo_Wen:IsReady() and (fire_ice >= 3 or MhachBLM.BLM.Burn) and IsReady(Mo_Wen) then
+			if (not TensorCore.hasBuff(player, 737)) and Mo_Wen:IsReady() and (fire_ice >= 3 or self.BLM.Burn) and IsReady(Mo_Wen) then
 				--if San_Lian:IsReady() and MhachBLM.BLM.Triplecast and MhachBLM.NotHold(San_Lian) and (not MhachBLM.Settings.RedPlayer) and not TensorCore.hasBuff(player, 1211) then return San_Lian, player end
-				if ((Fire_4.cd/Fire_4.recasttime) >= 0.5) then return Mo_Wen, player end
+				if ((Fire_4.cd/Fire_4.recasttime) >= 0.5) then self.JoinACR(Mo_Wen.id) end
 			end
 		end
-		return nil ,nil
+		return false ,nil
 	end
-	return nil ,nil
+	return false ,nil
 end
 
 local function Move_Combo()  --移动循环,已适配全等级
-	if nextGCD ~= nil then
-		if nextGCD.casttime == 0 then
-			return nil ,nil
+	if not GCDSkills:isEmpty() then
+		if ActionList:Get(1, GCDSkills:peek()).casttime == 0 then
+			return false ,nil
 		end
 	end
 	if moving then
-		if ((not TensorCore.hasBuff(player, 165) and fire_ice >= 1) or (fire_ice <= -1)) and  (not ShunFaBuff()) and ParadoxGauge[beilun] and IsReady(Bei_Lun) then return Bei_Lun, target end
-		if tongxiao >= 1 and MhachBLM.BLM.Polyglot and MhachBLM.NotHold(Yi_Yan) and IsReady(Yi_Yan) then return Yi_Yan, target end
-		if not ShunFaBuff() and MhachBLM.BLM.Triplecast and tongxiao <= 0 and San_Lian:IsReady() and IsReady(San_Lian) then return San_Lian, player end
-		if not ShunFaBuff() and tongxiao <= 0 and (not San_Lian:IsReady()) and IsReady(Ji_Ke) and Ji_Ke:IsReady() then return Ji_Ke, player end
-		return nil, nil
+		if ((Fire_3.highlighted == 0 and fire_ice >= 1) or (fire_ice <= -1)) and  (not ShunFaBuff()) and Bei_Lun.highlighted == 0 and IsReady(Bei_Lun) then return self.JoinACR(Bei_Lun.id, true), target end
+		if tongxiao >= 1 and self.BLM.Polyglot and self.NotHold(Yi_Yan) and IsReady(Yi_Yan) then return self.JoinACR(Yi_Yan.id, true), target end
+		if not ShunFaBuff() and self.BLM.Triplecast and tongxiao <= 0 and San_Lian:IsReady() and IsReady(San_Lian) then return self.JoinACR(San_Lian.id), player end
+		if not ShunFaBuff() and tongxiao <= 0 and (not San_Lian:IsReady()) and IsReady(Ji_Ke) and Ji_Ke:IsReady() then return self.JoinACR(Ji_Ke.id), player end
+		return false, nil
 	end
-	return nil , nil
+	return false , nil
 end
 
 local function BURN()  --燃尽爆发，已适配全等级
-	if MhachBLM.BLM.Burn and level >= 50 then
-		if fire_ice >= 1 and Yao_Xing.highlighted == 1 and IsReady(Yao_Xing) then return Yao_Xing, target end
-		if tongxiao >= 1 and IsReady(Yi_Yan) then return Yi_Yan, target end
-		if fire_ice >= 1 and mp >= 800 and IsReady(He_Bao) then return He_Bao, target end
-		if fire_ice >= 1 and mp and beilun <25 and IsReady(Xing_Ling) then return Xing_Ling, player end
-		if fire_ice <= -1 and ice_heart < 3 and IsReady(Ice_4) then return Ice_4, target end
-		if ice_heart == 3 and fire_ice <= -1 and Bei_Lun.highlighted == 1 and IsReady(Bei_Lun) then return Bei_Lun, target end
-		if fire_ice <= -1 and ice_heart == 3 and Bei_Lun.highlighted == 0 and IsReady(Xing_Ling) then return Xing_Ling, player end
-		return nil ,nil
+	if self.BLM.Burn and level >= 50 then
+		if fire_ice >= 1 and Yao_Xing.highlighted == 1 and IsReady(Yao_Xing) then return self.JoinACR(Yao_Xing.id), target end
+		if tongxiao >= 1 and IsReady(Yi_Yan) then return self.JoinACR(Yi_Yan.id), target end
+		if fire_ice >= 1 and mp >= 800 and IsReady(He_Bao) then return self.JoinACR(He_Bao.id), target end
+		if fire_ice >= 1 and mp and beilun <25 and IsReady(Xing_Ling) then self.JoinACR(Xing_Ling.id) end
+		if fire_ice <= -1 and ice_heart < 3 and IsReady(Ice_4) then return self.JoinACR(Ice_4.id), target end
+		if ice_heart == 3 and fire_ice <= -1 and Bei_Lun.highlighted == 1 and IsReady(Bei_Lun) then return self.JoinACR(Bei_Lun.id), target end
+		if fire_ice <= -1 and ice_heart == 3 and Bei_Lun.highlighted == 0 and IsReady(Xing_Ling) then self.JoinACR(Xing_Ling.id) end
+		return false ,nil
 	end
-	if MhachBLM.BLM.Burn and level < 50 then
-		MhachBLM.BLM.Burn = false
+	if self.BLM.Burn and level < 50 then
+		self.BLM.Burn = false
 	end
-	return nil ,nil
+	return false ,nil
 end
 
 local function Manafont()  --魔泉，已适配全等级，需要对黑魔纹开魔泉进行优化-----------------------------------------------------------------------------------------
-	if MhachBLM.BLM.Manafont and MhachBLM.BLM.CD then
+	if self.BLM.Manafont and self.BLM.CD then
 		if level >=35 then  --解锁了魔泉和三档火
 			if mp <800 and fire_ice == 3 and Mo_Quan:IsReady() and IsReady(Mo_Quan) then
-			return Mo_Quan, player end
+			self.JoinACR(Mo_Quan.id) end
 		elseif level >= 30 then  --解锁了魔泉但是没三档火
 			if mp <800 and fire_ice >= 1 and Mo_Quan:IsReady() and IsReady(Mo_Quan) then
-			return Mo_Quan, player end
+			self.JoinACR(Mo_Quan.id) end
 		end
-		return nil ,nil
+		return false ,nil
 	end
-	return nil ,nil
+	return false ,nil
 end
 
 local function Amplifier()  --详述，已适配全等级
-	if MhachBLM.BLM.Amplifier and MhachBLM.BLM.CD then
+	if self.BLM.Amplifier and self.BLM.CD then
 		if level >= 98 then  --三档豆子
-			if tongxiao <= 2 and Xiang_Shu.cd <= 1.5 and IsReady(Xiang_Shu) then return Xiang_Shu, player end
+			if tongxiao <= 2 and Xiang_Shu.cd <= 1.5 and IsReady(Xiang_Shu) then self.JoinACR(Xiang_Shu.id) end
 		elseif level >= 86 then  --二档豆子
-			if tongxiao <= 1 and Xiang_Shu.cd <= 1.5 and IsReady(Xiang_Shu) then return Xiang_Shu, player end
+			if tongxiao <= 1 and Xiang_Shu.cd <= 1.5 and IsReady(Xiang_Shu) then self.JoinACR(Xiang_Shu.id) end
 		end
 	end
 
-	if MhachBLM.BLM.Triplecast and MhachBLM.prepull and IsReady(San_Lian) and not ShunFaBuff() then  --TensorReactions_CurrentTimer
-		MhachBLM.prepull = false  --起手三连
-		return San_Lian, player
+	if self.BLM.Triplecast and self.prepull and IsReady(San_Lian) and not ShunFaBuff() then  --TensorReactions_CurrentTimer
+		self.prepull = false  --起手三连
+		self.JoinACR(San_Lian.id)
 	end
-	return nil ,nil
+	return false ,nil
 end
 
 local function Fire()  --火循环，已适配全等级
 	if fire_ice <=0 then
-		return nil, nil
+		return false, nil
 	end
-	if ((not MhachBLM.BLM.AOE) or MhachBLM.Target.aoe_num <= 1) and not MhachBLM.BLM.Burn then
-		if Yao_Xing.highlighted == 1 and IsReady(Yao_Xing) then return Yao_Xing, target end  --最大优先级，耀星
-		if fire_ice == 1 and mp >= 1600 and (not TensorCore.hasBuff(player, 165)) and Bei_Lun.highlighted == 1 and IsReady(Bei_Lun) then return Bei_Lun, target end  --进火打悖论获得火苗
-		if fire_ice == 3 and (not TensorCore.hasBuff(player, 165)) and mp>= 1600 and mp <= 3000 and beilun <= 3 and Bei_Lun.highlighted == 1 and IsReady(Bei_Lun) then return Bei_Lun, target end  --可调位置的悖论
-		if fire_ice == 1 and TensorCore.hasBuff(player, 165) and IsReady(Fire_3) then return Fire_3, target end  --火苗
-		if fire_ice == 3 and mp >= 1600 and IsReady(Fire_4) then return Fire_4, target end  --火4
-		if mp >= 800 and mp <1600 and IsReady(Jue_Wang) then return Jue_Wang, target end  --绝望收尾
-		if mp >= 800 and mp <1600 and IsReady(He_Bao) then return He_Bao, target end  --低等级核爆收尾
-		if fire_ice >= 1 and TensorCore.hasBuff(player, 165) and IsReady(Fire_3) and level >= 35 and level <= 59 then return Fire_3, target end  --低等级有火苗就打火苗
-		if fire_ice >= 1 and mp >= 800 and IsReady(Fire_1) then return Fire_1, target end  --低等级打火1
-		return nil ,nil
+	if ((not self.BLM.AOE) or self.Target.aoe_num <= 1) and not self.BLM.Burn then
+		if Yao_Xing.highlighted == 1 and IsReady(Yao_Xing) then return self.JoinACR(Yao_Xing.id), target end  --最大优先级，耀星
+		if fire_ice == 1 and mp >= 1600 and (not TensorCore.hasBuff(player, 165)) and Bei_Lun.highlighted == 1 and IsReady(Bei_Lun) then return self.JoinACR(Bei_Lun.id), target end  --进火打悖论获得火苗
+		if fire_ice == 3 and (not TensorCore.hasBuff(player, 165)) and mp>= 1600 and mp <= 3000 and beilun <= 3 and Bei_Lun.highlighted == 1 and IsReady(Bei_Lun) then return self.JoinACR(Bei_Lun.id), target end  --可调位置的悖论
+		if fire_ice == 1 and TensorCore.hasBuff(player, 165) and IsReady(Fire_3) then return self.JoinACR(Fire_3.id), target end  --火苗
+		if fire_ice == 3 and mp >= 1600 and IsReady(Fire_4) then return self.JoinACR(Fire_4.id), target end  --火4
+		if mp >= 800 and mp <1600 and IsReady(Jue_Wang) then return self.JoinACR(Jue_Wang.id), target end  --绝望收尾
+		if mp >= 800 and mp <1600 and IsReady(He_Bao) then return self.JoinACR(He_Bao.id), target end  --低等级核爆收尾
+		if fire_ice >= 1 and TensorCore.hasBuff(player, 165) and IsReady(Fire_3) and level >= 35 and level <= 59 then return self.JoinACR(Fire_3.id), target end  --低等级有火苗就打火苗
+		if fire_ice >= 1 and mp >= 800 and IsReady(Fire_1) then return self.JoinACR(Fire_1.id), target end  --低等级打火1
+		return false ,nil
 	end
-	return nil ,nil
+	return false ,nil
 end
 
 local function Ice() --冰循环，已适配全等级
 	if fire_ice >=0 then
-		return nil, nil
+		return false, nil
 	end
-	if ((not MhachBLM.BLM.AOE) or MhachBLM.Target.aoe_num <= 1) and not MhachBLM.BLM.Burn then
-		if fire_ice == -3 and mp < 10000 and ice_heart <3 and IsReady(Ice_4) then return Ice_4, target end --冰4
-		if fire_ice <= -1 and (ice_heart == 3 or mp == 10000) and Bei_Lun.highlighted == 1 and IsReady(Bei_Lun) then return Bei_Lun, target end  --冰悖论
-		if fire_ice <= -1 and mp < 1000 and IsReady(Ice_1) and not IsReady(Ice_4) then return Ice_1, target end  --连冰4都没有那就打冰1吧
-		return nil ,nil
+	if ((not self.BLM.AOE) or self.Target.aoe_num <= 1) and not self.BLM.Burn then
+		if fire_ice == -3 and mp < 10000 and ice_heart <3 and IsReady(Ice_4) then return self.JoinACR(Ice_4.id), target end --冰4
+		if fire_ice <= -1 and (ice_heart == 3 or mp == 10000) and Bei_Lun.highlighted == 1 and IsReady(Bei_Lun) then return self.JoinACR(Bei_Lun.id), target end  --冰悖论
+		if fire_ice <= -1 and mp < 1000 and IsReady(Ice_1) and not IsReady(Ice_4) then return self.JoinACR(Ice_1.id), target end  --连冰4都没有那就打冰1吧
+		return false ,nil
 	end
-	return nil ,nil
+	return false ,nil
 end
 
 local function Fix()  --打aoe后对循环进行修补
-	if ((not MhachBLM.BLM.AOE) or MhachBLM.Target.aoe_num <= 1) and not MhachBLM.BLM.Burn then
-		if beilun >= 25 then return Yao_Xing, target end
+	if ((not self.BLM.AOE) or self.Target.aoe_num <= 1) and not self.BLM.Burn then
+		if beilun >= 25 then return self.JoinACR(Yao_Xing.id), target end
 		if (fire_ice >= 1 and fire_ice <= 2) then
-			if TensorCore.hasBuff(player, 165) and IsReady(Fire_3) then return Fire_3, target end
-			if mp >= 4000 and IsReady(Fire_3) then return Fire_3, target end
-			if mp > 800 and IsReady(Jue_Wang) then return Jue_Wang, target end
-			if mp > 800 and IsReady(He_Bao) then return He_Bao, target end
-			if mp > 800 and IsReady(Fire_1) then return Fire_1, target end
-			if IsReady(Ice_3) then return Ice_3, target end
-			if IsReady(Ice_1) then return Ice_1, target end
+			if TensorCore.hasBuff(player, 165) and IsReady(Fire_3) then return self.JoinACR(Fire_3.id), target end
+			if mp >= 4000 and IsReady(Fire_3) then return self.JoinACR(Fire_3.id), target end
+			if mp > 800 and IsReady(Jue_Wang) then return self.JoinACR(Jue_Wang.id), target end
+			if mp > 800 and IsReady(He_Bao) then return self.JoinACR(He_Bao.id), target end
+			if mp > 800 and IsReady(Fire_1) then return self.JoinACR(Fire_1.id), target end
+			if IsReady(Ice_3) then return self.JoinACR(Ice_3.id), target end
+			if IsReady(Ice_1) then return self.JoinACR(Ice_1.id), target end
 		end
 		if (fire_ice <= -1 and fire_ice >= -2) then
-			if mp >= 10000 and IsReady(Fire_3) then return Fire_3, target end
-			if mp < 10000 and IsReady(Ice_4) then return Ice_4, target end
-			if mp >=800 or ice_heart == 3 and IsReady(Fire_3) then return Fire_3, target end
-			if IsReady(Ice_1) then return Ice_1, target end
+			if mp >= 10000 and IsReady(Fire_3) then return self.JoinACR(Fire_3.id), target end
+			if mp < 10000 and IsReady(Ice_4) then return self.JoinACR(Ice_4.id), target end
+			if mp >=800 or ice_heart == 3 and IsReady(Fire_3) then return self.JoinACR(Fire_3.id), target end
+			if IsReady(Ice_1) then return self.JoinACR(Ice_1.id), target end
 		end
-		if fire_ice <= -1 and IsReady(Ice_4) then return Ice_4, target end
-		if fire_ice <= -1 and IsReady(Ice_1) then return Ice_1, target end
-		if fire_ice >= 1 and IsReady(Fire_4) then return Fire_4, target end
-		if fire_ice >= 1 and IsReady(Fire_1) then return Fire_1, target end
-		if fire_ice == 0 and IsReady(Fire_3) and mp >= 2000 then return Fire_3, target end
-		if fire_ice == 0 and IsReady(Fire_1) and mp >= 1600 then return Fire_1, target end
-		return nil ,nil
+		if fire_ice <= -1 and IsReady(Ice_4) then return self.JoinACR(Ice_4.id), target end
+		if fire_ice <= -1 and IsReady(Ice_1) then return self.JoinACR(Ice_1.id), target end
+		if fire_ice >= 1 and IsReady(Fire_4) then return self.JoinACR(Fire_4.id), target end
+		if fire_ice >= 1 and IsReady(Fire_1) then return self.JoinACR(Fire_1.id), target end
+		if fire_ice == 0 and IsReady(Fire_3) and mp >= 2000 then return self.JoinACR(Fire_3.id), target end
+		if fire_ice == 0 and IsReady(Fire_1) and mp >= 1600 then return self.JoinACR(Fire_1.id), target end
+		return false ,nil
 	end
-	return nil ,nil
+	return false ,nil
 end
 
 
-local function InstantCast()   --创造瞬发窗口
-	if InstantWindow then
-		if nextGCD ~= nil then
-			if nextGCD.casttime == 0 then
-				InstantWindow = false
-				return nil ,nil
-			end
-		end
-		if tongxiao >= 1 and MhachBLM.BLM.Polyglot and IsReady(Yi_Yan) and (MhachBLM.Target.aoe_num == 1 or not MhachBLM.BLM.AOE) then
-			InstantWindow = false
-			return Yi_Yan, target
-		elseif tongxiao >= 1 and MhachBLM.BLM.Polyglot and IsReady(Hui_Zhuo) and level >= 80 and MhachBLM.Target.aoe_num >= 2 then
-			InstantWindow = false
-			return Hui_Zhuo, target
-		elseif Bei_Lun.highlighted == 1 and IsReady(Bei_Lun) then
-			InstantWindow = false
-			return Bei_Lun, target
-		--[[elseif TensorCore.hasBuff(player, 3870) and IsReady(DOT_3) and MhachBLM.BLM.DOT then  -------这里要改一下，
-			InstantWindow = false
-			return DOT_3, target]]
-		end
-		ForceAbl = true  --没有瞬发窗口，强制插能力技
-		return nil, nil
+function self.UseHotbarSkill(id)   --使用hotbar技能
+	local skill = self.Skills[id]
+	self.DebugPrint("UseHotbarSkill:" .. skill.name)
+	if id >= 0 then  --真实技能进入技能队列
+		skill.inHotbarList = true
+		HotbarSkills:enqueueUnic(id)
 	end
-	return nil, nil
 end
+
+function self.CancelHotbarSkill(id)  --取消hotbar技能
+	local skill = self.Skills[id]
+	self.DebugPrint("CancelHotbarSkill:" .. skill.name)
+	if id >= 0 then  --真实技能进入技能队列
+		skill.inHotbarList = false
+		HotbarSkills:removeAll(id)
+	end
+end
+
+local function CastWindow()
+
+	if ActionList:Get(1, GCDSkills:peek()).casttime == 0 then
+		return false ,nil
+	end
+
+	self.DebugPrint("Creat a OGCD window")
+	if tongxiao >= 1 and self.BLM.Polyglot and IsReady(Yi_Yan) and (self.Target.aoe_num == 1 or not self.BLM.AOE) then
+		--SendTextCommand("/ac " .. Yi_Yan.name)
+		return self.JoinACR(Yi_Yan.id, true)
+	elseif tongxiao >= 1 and self.BLM.Polyglot and IsReady(Hui_Zhuo) and level >= 80 and self.Target.aoe_num >= 2 and self.BLM.AOE then
+		--SendTextCommand("/ac " .. Hui_Zhuo.name)
+		return self.JoinACR(Hui_Zhuo.id, true)
+	elseif Bei_Lun.highlighted == 1 and Fire_3.highlighted == 0 and IsReady(Bei_Lun) then
+		--SendTextCommand("/ac " .. Bei_Lun.name)
+		return self.JoinACR(Bei_Lun.id, true)
+	--[[elseif TensorCore.hasBuff(player, 3870) and IsReady(DOT_3) and MhachBLM.BLM.DOT then  -------这里要改一下，
+		InstantWindow = false
+		return DOT_3, target]]
+	end
+	ForceAbl = true  --没有瞬发窗口，强制插能力技
+	return false, nil
+end
+
 
 local function HotbarRotation()
 	if not HotbarSkills:isEmpty() then
-		if lastcast == HotbarSkills:peek() and player.castinginfo.timesincecast <= 2000 then
-			HotbarSkills:removeAll(lastcast)
-			MhachBLM.Skills[lastcast].inHotbarList = false
-			return nil, nil
-		else
-			return HotbarSkills:peek(), target
+		if IsReady(ActionList:Get(1, HotbarSkills:peek())) then
+			return self.JoinACR(HotbarSkills:peek(), true), target
 		end
 	end
-	return nil, nil
+	return false, nil
 end
 
-local RotationList = {
-	[1] = HotbarRotation,
-	[2] = Move_Combo,
-	[3] = InstantCast,
+function self.JoinACR(id, HighPriority)
+	HighPriority = HighPriority or false
+	if type(id) ~= "number" then
+		id = id.id
+	end
+	if IsSkillGCD(id) then
+		if HighPriority then  --如果高优先级就放到队首
+			GCDSkills:enqueueFrontUnic(id)
+		else
+			GCDSkills:enqueueUnic(id)
+		end
+	else
+		if HighPriority then
+			OGCDSkills:enqueueFrontUnic(id)
+		else
+			OGCDSkills:enqueueUnic(id)
+		end
+	end
+	return true
+end
+
+local MainRotationList = {
+	[1] = LeyLines,
+	[2] = Manafont,
+	[3] = Amplifier,
 	[4] = Polyglot_Combo,
 	[5] = DOT_Combo,
 	[6] = AOE_Combo,
 	[7] = BURN,
-	[8] = LeyLines,
-	[9] = Manafont,
-	[10] = Amplifier,
-	[11] = Fire,
-	[12] = Fire_Ice,
-	[13] = Ice,
-	[14] = Ice_Fire,
-	[15] = Fix,
+	[8] = Fire,
+	[9] = Fire_Ice,
+	[10] = Ice,
+	[11] = Ice_Fire,
+	[12] = Fix,
 }
 
+
 local function UserRoatation()
-	if MhachBLM.HasTarget() and (not PlayerSkills:isEmpty()) then  --用户自定义循环逻辑
-
-		if lastcast == PlayerSkills:peek() and TensorCore.mGetPlayer().castinginfo.timesincecast <= 2000 then
-			PlayerSkills:dequeue()
+	if not PlayerSkills:isEmpty() then  --用户自定义循环逻辑
+		if IsReady(ActionList:Get(1, PlayerSkills:peek())) then
+			return self.JoinACR(PlayerSkills:peek(), true), target
 		end
-		return PlayerSkills:peek(), target
 	end
-	return nil, nil
+	return false, nil
 end
-
-
 
 local function MainRotation()  --技能主循环
 
-	local skill , t
-	skill , t = UserRoatation()
-	if skill == nil and MhachBLM.HasTarget() then
-		for i = 1, #RotationList do
-			skill , t = RotationList[i]()
-			if skill ~= nil then
-				break
-			end
+	local s , t, _
+
+	for i = 1, #MainRotationList do
+		s , t = MainRotationList[i]()
+		if s then
+			break
 		end
 	end
-	return skill , t
+	s, _ = HotbarRotation()
+	if s then
+		t = _
+	end
+	s, _ = UserRoatation()
+	if s then
+		t = _
+	end
+	s, _ = Move_Combo()
+	if s then
+		t = _
+	end
+	return s , t
+end
+
+function  self.debugQueue()
+	if not GCDSkills:isEmpty() then
+		d("gcd: " .. GCDSkills:peek())
+	end
+	if not OGCDSkills:isEmpty() then
+		d("abl: " .. OGCDSkills:peek())
+	end
 end
 
 --技能逻辑----------------------------------------------------------------------------------------------------------------------
-function MhachBLM.Cast()
+function self.Cast()
 	--[[if MhachBLMRotation ~= nil then
 		MhachBLMRotation:Rotation()
 	end]]
-	if Player.alive and not (Busy() or IsMounting() or IsMounted() or IsDismounting() or MIsLoading() or IsFlying() or IsDiving()) then
-		--TensorCore.hasBuff(player, 4410)--无敌buff
-		local skill ,t = MainRotation()
-		if skill ~= nil then
-			MhachBLM.Action(skill ,t)
+	if self.HasTarget() and TensorCore.mGetPlayer().alive and FFXIV_Common_BotRunning and not (Busy() or IsMounting() or IsMounted() or IsDismounting() or MIsLoading() or IsFlying() or IsDiving()) then
+		UpdateTimer()
+		SetValue()
+		LockFace()
+		if (GUI:IsKeyDown(87) or GUI:IsKeyDown(65) or GUI:IsKeyDown(83) or GUI:IsKeyDown(68)) and player:GetSpeed().Forward == 0 then
+			player:SetSpeed(1, speed_F, speed_B, speed_S, speed_W)
 		end
+		self.TargetSet()
+		if self.BLM.AOE and self.Target.aoe_num >= 2 then
+			ForceAbl = true
+		end
+		GCDSkills:clear()
+		OGCDSkills:clear()
+		local s, t = MainRotation()
+		--TensorCore.hasBuff(player, 4410)--无敌buff
+		if CanCastGCD() and not GCDSkills:isEmpty() then
+			--GCDSkills:printQueue()
+			if not OGCDSkills:isEmpty() then CastWindow() end
+			self.Action(GCDSkills:dequeue(), t)
+			GCDSkills:clear()
+		end
+		if CanCastABL() and not OGCDSkills:isEmpty() then
+			--OGCDSkills:printQueue()
+			self.Action(OGCDSkills:dequeue(), t)
+			OGCDSkills:clear()
+		end
+
 	end
 end
 
 
 local function JoinHotbarQueue(skill, id)
-	MhachBLM.DebugPrint("HotbarSkill:" .. skill.name .. tostring(skill.inHotbarList))
+	self.DebugPrint("HotbarSkill:" .. skill.name .. tostring(skill.inHotbarList))
 	if id >= 0 then  --真实技能进入技能队列
 		if skill.inHotbarList then
 			HotbarSkills:enqueueUnic(id)
@@ -1924,15 +2062,15 @@ local function JoinHotbarQueue(skill, id)
 		end
 	else
 		if not skill.inHotbarList then
-			MhachBLM.LockFaceOff()
+			self.LockFaceOff()
 		end
 	end
 end
 
-function MhachBLM.Draw()
-	if MhachBLM.GUI.open then
-		MhachBLM.GUI.visible, MhachBLM.GUI.open = GUI:Begin(MhachBLM.GUI.name, MhachBLM.GUI.open)
-        if (MhachBLM.GUI.visible) then
+function self.Draw()
+	if self.GUI.open then
+		self.GUI.visible, self.GUI.open = GUI:Begin(self.GUI.name, self.GUI.open)
+        if (self.GUI.visible) then
 			--[[GUI:Button("Reload Module", 110, 20)
             if GUI:IsItemClicked(0) then
                 --重载配置
@@ -1943,92 +2081,103 @@ function MhachBLM.Draw()
 					d("模型加载失败，请重新加载或检查文件完整性！")
 				end
             end]]
-			GUI:Button("主设置", 100, 62)
+			GUI:Button(T["MSet"][1][Language], 100, 62)
 			if GUI:IsItemClicked(0) then
 				settingUI = true
 				hotbarUI = false
             end
 
 			GUI:SameLine()
-			GUI:Button("HotBar设置", 100, 62)
+			GUI:Button(T["HSet"][1][Language], 100, 62)
 			if GUI:IsItemClicked(0) then
 				settingUI = false
 				hotbarUI = true
             end
 			if settingUI then     --主设置界面
 				GUI:Spacing()
-				local value, changed = GUI:Checkbox("Debug Output", MhachBLM.Settings.Debug)
+				local value, changed = GUI:Checkbox(T["MSet"][2][Language], self.Settings.Debug)
 				GUI:Spacing()
-				local value2, changed2 = GUI:Checkbox("我开启了动画锁", MhachBLM.Settings.FuckAnimation)
+				local value2, changed2 = GUI:Checkbox(T["MSet"][3][Language], self.Settings.FuckAnimation)
 				GUI:Spacing()
-				local value3, changed3 = GUI:Checkbox("魔丸循环", MhachBLM.Settings.RedPlayer)
+				local value3, changed3 = GUI:Checkbox(T["MSet"][4][Language], self.Settings.RedPlayer)
 				GUI:Spacing()
-				local value4, changed4 = GUI:Checkbox("魔纹步替补以太步", MhachBLM.Settings.Between_the_Aetherial)
+				local value4, changed4 = GUI:Checkbox(T["MSet"][5][Language], self.Settings.Between_the_Aetherial)
 				GUI:Spacing()
-				local value5, changed5 = GUI:Checkbox("显示接下来的技能", MhachBLM.Settings.ShowNextSkill)
+				local value5, changed5 = GUI:Checkbox(T["MSet"][6][Language], self.Settings.ShowNextSkill)
 				GUI:Spacing()
-				local value6, changed6 = GUI:Checkbox("不知道干啥的就别点", MhachBLM.Settings.NewCombo)
+				local value6, changed6 = GUI:Checkbox(T["MSet"][7][Language], self.Settings.NewCombo)
 				GUI:Spacing()
-				local value7, changed7 = GUI:Checkbox("战斗外禁用热键", MhachBLM.Settings.Lock)
+				local value7, changed7 = GUI:Checkbox(T["MSet"][8][Language], self.Settings.Lock)
 				GUI:Spacing()
-				GUI:Text("Dot目标黑名单")
+				GUI:Text(T["MSet"][9][Language])
 				GUI:SameLine()
-				local input, inputChanged = GUI:InputText("##Dot黑名单", listToString(MhachBLM.Settings.DotBlackList, ","), GUI.InputTextFlags_CharsNoBlank)
+				local input, inputChanged = GUI:InputText("##Dot黑名单", listToString(self.Settings.DotBlackList, ","), GUI.InputTextFlags_CharsNoBlank)
 				if GUI:IsItemHovered() then
-					GUI:SetTooltip("输入需要加入黑名单的content id,以逗号分隔")
+					GUI:SetTooltip(T["MSet"][10][Language])
 				end
+				GUI:Spacing()
+				GUI:Text('Language:  ')
+				GUI:SameLine()
+            	GUI:PushItemWidth(60)
+				local index, languageChanged = GUI:Combo('##languagebind', languageIndex, LanguageList, 4)  --语言
+				if languageChanged then
+					Language = LanguageList[index]
+					languageIndex = index
+				end
+				SaveSettings()
+				GUI:PopItemWidth()
 				if inputChanged then
 					if input ~= nil and input ~= '' then
                         local newStr, _ = string.gsub(input, ", ", ",")
                         local blackList = splitString(newStr, ",")
-                        MhachBLM.Settings.DotBlackList = {}
+                        self.Settings.DotBlackList = {}
                         for _, id in pairs(blackList) do
-							MhachBLM.Settings.DotBlackList[tonumber(id)] = true
+							self.Settings.DotBlackList[tonumber(id)] = true
                             --table.insert(MhachBLM.Settings.DotBlackList, tonumber(id))
                         end
 					else
-						MhachBLM.Settings.DotBlackList = {}
+						self.Settings.DotBlackList = {}
                     end
 
 					SaveSettings()
 				end
 				if changed then
-					MhachBLM.Settings.Debug = value
+					self.Settings.Debug = value
 					SaveSettings()
 				end
 				if changed2 then
-					MhachBLM.Settings.FuckAnimation = value2
+					self.Settings.FuckAnimation = value2
 					SaveSettings()
 				end
 				if changed3 then
-					MhachBLM.Settings.RedPlayer = value3
+					self.Settings.RedPlayer = value3
 					SaveSettings()
 				end
 				if changed4 then
-					MhachBLM.Settings.Between_the_Aetherial = value4
+					self.Settings.Between_the_Aetherial = value4
 					SaveSettings()
 				end
 				if changed5 then
-					MhachBLM.Settings.ShowNextSkill = value5
+					self.Settings.ShowNextSkill = value5
 					SaveSettings()
 				end
 				if changed7 then
-					MhachBLM.Settings.Lock = value7
+					self.Settings.Lock = value7
 					SaveSettings()
 				end
 				if changed6 then
-					MhachBLM.Settings.NewCombo = value6
-					if MhachBLM.Settings.NewCombo then
+					self.Settings.NewCombo = value6
+					if self.Settings.NewCombo then
 						MhachBLMTest = FileLoad(Module)
 						if MhachBLMTest ~= nil then
-							MhachBLM.DebugPrint("新模型已启用.")
-							MhachBLM.DebugPrint("测试获取新模型数据:"..MhachBLMTest.SkillsTest[142].Inform.Name)
+							self.DebugPrint("新模型已启用.")
+							self.DebugPrint("测试获取新模型数据:"..MhachBLMTest.SkillsTest[142].Inform.Name)
 						else
-							MhachBLM.DebugPrint("未成功加载新模型.")
-							MhachBLM.Settings.NewCombo = false
+							self.DebugPrint("未成功加载新模型.")
+							self.Settings.NewCombo = false
 						end
 					else
-						MhachBLM.DebugPrint("新模型已禁用.")
+						self.DebugPrint("新模型已禁用.")
 					end
 					SaveSettings()
 				end
@@ -2037,14 +2186,14 @@ function MhachBLM.Draw()
 
 			if hotbarUI then   --热键栏设置界面
 				GUI:Spacing()
-				local value, changed = GUI:Checkbox("显示热键栏", MhachBLM.Settings.ShowHotBar)
+				local value, changed = GUI:Checkbox(T["HSet"][2][Language], self.Settings.ShowHotBar)
 				if changed then
-					MhachBLM.Settings.ShowHotBar = value
+					self.Settings.ShowHotBar = value
 					SaveSettings()
 				end
 				GUI:Spacing()
 				for _, id in ipairs(sortedIds) do
-    				local skill = MhachBLM.Skills[id]
+    				local skill = self.Skills[id]
 					local str = nil
     				GUI:Image(skill.iconPath, 38, 38)
 					GUI:SameLine()
@@ -2056,7 +2205,7 @@ function MhachBLM.Draw()
 							skill.keyBinding = true
 						end
 					else
-						str = "按下按键以绑定"
+						str = T["HSet"][3][Language]
 						---------------------------绑定按键
 						local pressed = false
 						skill.keyBind, skill.keyName, skill.keyC, skill.keyA, skill.keyS, pressed = IsKeyDown()
@@ -2105,20 +2254,20 @@ function MhachBLM.Draw()
 			end
         end
 	end
-    if MhachBLM ~= nil and MhachBLM.BLMGUI ~= nil then
+    if self ~= nil and self.BLMGUI ~= nil then
 
-        if GUI:Begin(MhachBLM.BLMGUI.WindowName, MhachBLM.BLMGUI.IsVisible, MhachBLM.BLMGUI.WindowFlags) then  --qt界面
+        if GUI:Begin(self.BLMGUI.WindowName, self.BLMGUI.IsVisible, self.BLMGUI.WindowFlags) then  --qt界面
 			local buttonsPerRow = 3  -- 每行显示两个按钮
 			local buttonIndex = 0    -- 当前按钮索引
 
-			for _, button in ipairs(MhachBLM.BLMGUI.Buttons) do
+			for _, button in ipairs(self.BLMGUI.Buttons) do
 				-- 普通按钮绘制
 				-- 应用样式
-				MhachBLM.BLMGUI.ApplyButtonStyle(button.Enabled, button.Style)
+				self.BLMGUI.ApplyButtonStyle(button.Enabled, button.Style)
 
 				-- 检查按钮是否有单独设置的宽度和高度
-				local buttonWidth = button.Width or MhachBLM.BLMGUI.ButtonWidth
-				local buttonHeight = button.Height or MhachBLM.BLMGUI.ButtonHeight
+				local buttonWidth = button.Width or self.BLMGUI.ButtonWidth
+				local buttonHeight = button.Height or self.BLMGUI.ButtonHeight
 
 				-- 绘制按钮
 				GUI:Button(button.Label, buttonWidth, buttonHeight)
@@ -2126,72 +2275,72 @@ function MhachBLM.Draw()
 				-- 恢复样式
 				GUI:PopStyleColor(button.Style and button.Style.Text and 4 or 3)
 
-				if button.Label == "CD" then
-					button.Enabled = MhachBLM.BLM.CD
-				elseif button.Label == "DOT" then
-					button.Enabled = MhachBLM.BLM.DOT
-				elseif button.Label == "AOE" then
-					button.Enabled = MhachBLM.BLM.AOE
-				elseif button.Label == "爆发药" then
-					button.Enabled = MhachBLM.BLM.Potion
-				elseif button.Label == "通晓" then
-					button.Enabled = MhachBLM.BLM.Polyglot
-				elseif button.Label == "黑魔纹" then
-					button.Enabled = MhachBLM.BLM.Ley_Lines
-				elseif button.Label == "魔泉" then
-					button.Enabled = MhachBLM.BLM.Manafont
-				elseif button.Label == "详述" then
-					button.Enabled = MhachBLM.BLM.Amplifier
-				elseif button.Label == "三连咏唱" then
-					button.Enabled = MhachBLM.BLM.Triplecast
-				elseif button.Label == "Burn" then
-					button.Enabled = MhachBLM.BLM.Burn
-				elseif button.Label == "智能目标" then
-					button.Enabled = MhachBLM.BLM.Smart_Target
-				elseif button.Label == "更多移动" then
-					button.Enabled = MhachBLM.BLM.More_Move
+				if button.Label == T["QT"][1][Language] then
+					button.Enabled = self.BLM.CD
+				elseif button.Label == T["QT"][2][Language] then
+					button.Enabled = self.BLM.DOT
+				elseif button.Label == T["QT"][3][Language] then
+					button.Enabled = self.BLM.AOE
+				elseif button.Label == T["QT"][4][Language] then
+					button.Enabled = self.BLM.Potion
+				elseif button.Label == T["QT"][5][Language] then
+					button.Enabled = self.BLM.Polyglot
+				elseif button.Label == T["QT"][6][Language] then
+					button.Enabled = self.BLM.Ley_Lines
+				elseif button.Label == T["QT"][7][Language] then
+					button.Enabled = self.BLM.Manafont
+				elseif button.Label == T["QT"][8][Language] then
+					button.Enabled = self.BLM.Amplifier
+				elseif button.Label == T["QT"][9][Language] then
+					button.Enabled = self.BLM.Triplecast
+				elseif button.Label == T["QT"][10][Language] then
+					button.Enabled = self.BLM.Burn
+				elseif button.Label == T["QT"][11][Language] then
+					button.Enabled = self.BLM.Smart_Target
+				elseif button.Label == T["QT"][12][Language] then
+					button.Enabled = self.BLM.More_Move
 				end
 
 				-- 检测点击事件
 				if button.Clickable and GUI:IsItemClicked() then
 					--button.Enabled = not button.Enabled
 
-					if button.Label == "CD" then
-						MhachBLM.BLM.CD = not MhachBLM.BLM.CD
-						MhachBLM.DebugPrint("CD now is " .. tostring(MhachBLM.BLM.CD))
-					elseif button.Label == "DOT" then
-						MhachBLM.BLM.DOT = not MhachBLM.BLM.DOT
-						MhachBLM.DebugPrint("DOT now is " .. tostring(MhachBLM.BLM.DOT))
-					elseif button.Label == "AOE" then
-						MhachBLM.BLM.AOE = not MhachBLM.BLM.AOE
-						MhachBLM.DebugPrint("AOE now is " .. tostring(MhachBLM.BLM.AOE))
-					elseif button.Label == "爆发药" then
-						MhachBLM.BLM.Potion = not MhachBLM.BLM.Potion
-						MhachBLM.DebugPrint("Potion now is " .. tostring(MhachBLM.BLM.Potion))
-					elseif button.Label == "通晓" then
-						MhachBLM.BLM.Polyglot = not MhachBLM.BLM.Polyglot
-						MhachBLM.DebugPrint("Polyglot now is " .. tostring(MhachBLM.BLM.Polyglot))
-					elseif button.Label == "黑魔纹" then
-						MhachBLM.BLM.Ley_Lines = not MhachBLM.BLM.Ley_Lines
-						MhachBLM.DebugPrint("Ley_Lines now is " .. tostring(MhachBLM.BLM.Ley_Lines))
-					elseif button.Label == "魔泉" then
-						MhachBLM.BLM.Manafont = not MhachBLM.BLM.Manafont
-						MhachBLM.DebugPrint("Manafont now is " .. tostring(MhachBLM.BLM.Manafont))
-					elseif button.Label == "详述" then
-						MhachBLM.BLM.Amplifier = not MhachBLM.BLM.Amplifier
-						MhachBLM.DebugPrint("Amplifier now is " .. tostring(MhachBLM.BLM.Amplifier))
-					elseif button.Label == "三连咏唱" then
-						MhachBLM.BLM.Triplecast = not MhachBLM.BLM.Triplecast
-						MhachBLM.DebugPrint("Triplecast now is " .. tostring(MhachBLM.BLM.Triplecast))
-					elseif button.Label == "Burn" then
-						MhachBLM.BLM.Burn = not MhachBLM.BLM.Burn
-						MhachBLM.DebugPrint("Burn now is " .. tostring(MhachBLM.BLM.Burn))
-					elseif button.Label == "智能目标" then
-						MhachBLM.BLM.Smart_Target = not MhachBLM.BLM.Smart_Target
-						MhachBLM.DebugPrint("Smart_Target now is " .. tostring(MhachBLM.BLM.Smart_Target))
-					elseif button.Label == "更多移动" then
-						MhachBLM.BLM.More_Move = not MhachBLM.BLM.More_Move
-						MhachBLM.DebugPrint("More_Move now is " .. tostring(MhachBLM.BLM.More_Move))
+					if button.Label == T["QT"][1][Language] then
+						self.BLM.CD = not self.BLM.CD
+						self.DebugPrint("CD now is " .. tostring(self.BLM.CD))
+					elseif button.Label == T["QT"][2][Language] then
+						self.BLM.DOT = not self.BLM.DOT
+						self.DebugPrint("DOT now is " .. tostring(self.BLM.DOT))
+					elseif button.Label == T["QT"][3][Language] then
+						self.BLM.AOE = not self.BLM.AOE
+						self.DebugPrint("AOE now is " .. tostring(self.BLM.AOE))
+					elseif button.Label == T["QT"][4][Language] then
+						self.BLM.Potion = not self.BLM.Potion
+						self.DebugPrint("Potion now is " .. tostring(self.BLM.Potion))
+					elseif button.Label == T["QT"][5][Language] then
+						self.BLM.Polyglot = not self.BLM.Polyglot
+						self.DebugPrint("Polyglot now is " .. tostring(self.BLM.Polyglot))
+					elseif button.Label == T["QT"][6][Language] then
+						self.BLM.Ley_Lines = not self.BLM.Ley_Lines
+						self.DebugPrint("Ley_Lines now is " .. tostring(self.BLM.Ley_Lines))
+					elseif button.Label == T["QT"][7][Language] then
+						self.BLM.Manafont = not self.BLM.Manafont
+						self.DebugPrint("Manafont now is " .. tostring(self.BLM.Manafont))
+					elseif button.Label == T["QT"][8][Language] then
+						self.BLM.Amplifier = not self.BLM.Amplifier
+						self.DebugPrint("Amplifier now is " .. tostring(self.BLM.Amplifier))
+					elseif button.Label == T["QT"][9][Language] then
+						self.BLM.Triplecast = not self.BLM.Triplecast
+						self.DebugPrint("Triplecast now is " .. tostring(self.BLM.Triplecast))
+					elseif button.Label == T["QT"][10][Language] then
+						self.BLM.Burn = not self.BLM.Burn
+						self.DebugPrint("Burn now is " .. tostring(self.BLM.Burn))
+					elseif button.Label == T["QT"][11][Language] then
+						self.BLM.Smart_Target = not self.BLM.Smart_Target
+						self.DebugPrint("Smart_Target now is " .. tostring(self.BLM.Smart_Target))
+					elseif button.Label == T["QT"][12][Language] then
+						self.BLM.More_Move = not self.BLM.More_Move
+						self.DebugPrint("More_Move now is " .. tostring(self.BLM.More_Move))
 					end
 					SaveSettings()
 				end
@@ -2207,18 +2356,18 @@ function MhachBLM.Draw()
 			GUI:End()
 		end
 
-		if MhachBLM.Settings.ShowNextSkill then   --下一个技能界面
-			if GUI:Begin(MhachBLM.NextSkillUI.WindowName, MhachBLM.NextSkillUI.IsVisible, MhachBLM.NextSkillUI.WindowFlags) then
-				if nextGCD ~= nil then
-					GUI:Image(MhachBLM.Skills[nextGCD.id].iconPath, 50, 50)
+		if self.Settings.ShowNextSkill then   --下一个技能界面
+			if GUI:Begin(self.NextSkillUI.WindowName, self.NextSkillUI.IsVisible, self.NextSkillUI.WindowFlags) then
+				if not GCDSkills:isEmpty() then
+					GUI:Image(self.Skills[GCDSkills:peek()].iconPath, 50, 50)
 				else
 					GUI:Image(defultIcon, 50, 50)
 				end
 
 				GUI:SameLine()
 
-				if nextAbl ~= nil then
-					GUI:Image(MhachBLM.Skills[nextAbl.id].iconPath, 40, 40)
+				if not OGCDSkills:isEmpty() then
+					GUI:Image(self.Skills[OGCDSkills:peek()].iconPath, 40, 40)
 				else
 					GUI:Image(defultIcon, 40, 40)
 				end
@@ -2226,8 +2375,8 @@ function MhachBLM.Draw()
 			end
 		end
 
-		if MhachBLM.Settings.ShowHotBar then   --热键栏界面
-			if GUI:Begin(MhachBLM.HotBarUI.WindowName, MhachBLM.HotBarUI.IsVisible, MhachBLM.HotBarUI.WindowFlags) then
+		if self.Settings.ShowHotBar then   --热键栏界面
+			if GUI:Begin(self.HotBarUI.WindowName, self.HotBarUI.IsVisible, self.HotBarUI.WindowFlags) then
 				--local icons = FolderList(Icons)
 				local arr = 12  --一行的数量
 				local index = 0
@@ -2235,7 +2384,7 @@ function MhachBLM.Draw()
 				local X = 5
 				local Y = 5
 				for _, id in ipairs(sortedIds) do
-    				local skill = MhachBLM.Skills[id]
+    				local skill = self.Skills[id]
 					if skill.showHotbar then
 						if index < arr then
 							GUI:SetCursorPos(X,Y)
@@ -2255,7 +2404,7 @@ function MhachBLM.Draw()
 
 						if GUI:IsItemClicked(0) then   --横向+53,纵向+49
 							skill.inHotbarList = not skill.inHotbarList
-							MhachBLM.DebugPrint("HotbarSkill:" .. skill.name .. tostring(skill.inHotbarList))
+							self.DebugPrint("HotbarSkill:" .. skill.name .. tostring(skill.inHotbarList))
 							JoinHotbarQueue(skill, id)
 							
 						end
@@ -2274,10 +2423,10 @@ function MhachBLM.Draw()
 					end
 
 					--检测按键
-					if KeybindsPressed(skill) and (not MhachBLM.Settings.Lock) and not skill.keyBinding then
+					if KeybindsPressed(skill) and (not self.Settings.Lock) and not skill.keyBinding then
 						skill.inHotbarList = not skill.inHotbarList
 						JoinHotbarQueue(skill, id)
-					elseif MhachBLM.Settings.Lock then  --战斗外禁用快捷键
+					elseif self.Settings.Lock then  --战斗外禁用快捷键
 						if TensorCore.mGetPlayer().incombat and not skill.keyBinding and KeybindsPressed(skill) then
 							skill.inHotbarList = not skill.inHotbarList
 							JoinHotbarQueue(skill, id)
@@ -2304,15 +2453,17 @@ end]]
  
 end]]
 
-function MhachBLM.OnOpen()
-    MhachBLM.GUI.open = true
+function self.OnOpen()
+    self.GUI.open = true
 end
 
-function MhachBLM.OnLoad()
+function self.OnLoad()
 
     --ACR_MyProfile_MySavedVar = ACR.GetSetting("ACR_MyProfile_MySavedVar", false)
+	
 	LoadSettings()
 	LoadHotBar()
+	LoadTranslation()
 	--[[MhachBLMRotation = FileLoad(Module)
 	if MhachBLMRotation ~= nil then
 		d(type(MhachBLMRotation))
@@ -2323,14 +2474,11 @@ function MhachBLM.OnLoad()
 	end]]
 end
 
-function MhachBLM.OnUpdate(event, tickcount)
-	UpdateTimer()
-	SetValue()  --设置本地变量
-	TargetSet()
-	LockFace()
-	if (GUI:IsKeyDown(87) or GUI:IsKeyDown(65) or GUI:IsKeyDown(83) or GUI:IsKeyDown(68)) and player:GetSpeed().Forward == 0 then
-		player:SetSpeed(1, speed_F, speed_B, speed_S, speed_W)
-	end
+function self.OnUpdate(event, tickcount)
+	--[[if TensorCore.mGetPlayer().alive and FFXIV_Common_BotRunning and not (Busy() or IsMounting() or IsMounted() or IsDismounting() or MIsLoading() or IsFlying() or IsDiving()) then
+		
+		
+	end]]
 end
 
 return MhachBLM
