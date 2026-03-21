@@ -138,6 +138,12 @@ local tbl =
             ["EN"] = "Enter the content IDs to be added to the blacklist, separated by commas",
             ["JP"] = "ブラックリストに追加するコンテンツIDを入力してください。コンマで区切ってください。",
         },
+        [11] =
+        {
+            ["CN"] = "/ac输入能力技(确保能力技输入)",
+            ["EN"] = "/ac input ability skill(ensure ability skill input)",
+            ["JP"] = "/ac能力技を入力(能力技の入力を確実にする)",
+        },
     },
 
     ["HSet"] =
