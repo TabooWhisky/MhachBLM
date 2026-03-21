@@ -641,31 +641,30 @@ end
 local function LoadSettings()
 	local tbl = FileLoad(Settings)
 	if tbl ~= nil then
-		self.BLM.CD = tbl.Value.CD
-		self.BLM.DOT = tbl.Value.DOT
-		self.BLM.AOE = tbl.Value.AOE
-		self.BLM.Potion = tbl.Value.Potion
-		self.BLM.Polyglot = tbl.Value.Polyglot
-		self.BLM.Ley_Lines = tbl.Value.Ley_Lines
-		self.BLM.Manafont = tbl.Value.Manafont
-		self.BLM.Amplifier = tbl.Value.Amplifier
-		self.BLM.Triplecast = tbl.Value.Triplecast
-		self.BLM.Burn = tbl.Value.Burn
-		self.BLM.Smart_Target = tbl.Value.Smart_Target
-		self.BLM.More_Move = tbl.Value.More_Move
-		self.Settings.Debug = tbl.Value.Debug
-		self.Settings.FuckAnimation = tbl.Value.FuckAnimation
-		self.Settings.RedPlayer = tbl.Value.RedPlayer
-		self.Settings.Between_the_Aetherial = tbl.Value.Between_the_Aetherial
-		self.Settings.ShowNextSkill = tbl.Value.ShowNextSkill
-		self.Settings.NewCombo = tbl.Value.NewCombo
-		self.Settings.ShowHotBar = tbl.Value.ShowHotBar
-		self.Settings.Lock = tbl.Value.Lock
-		self.Settings.DotBlackList = tbl.Value.DotBlackList
-		Language = tbl.Value.Language
-		if Language == nil then
-			Language = "CN"
-		end
+		self.BLM.CD = tbl.Value.CD or true
+		self.BLM.DOT = tbl.Value.DOT or true
+		self.BLM.AOE = tbl.Value.AOE or true
+		self.BLM.Potion = tbl.Value.Potion or false
+		self.BLM.Polyglot = tbl.Value.Polyglot or true
+		self.BLM.Ley_Lines = tbl.Value.Ley_Lines or true
+		self.BLM.Manafont = tbl.Value.Manafont or true
+		self.BLM.Amplifier = tbl.Value.Amplifier or true
+		self.BLM.Triplecast = tbl.Value.Triplecast or true
+		self.BLM.Burn = tbl.Value.Burn or false
+		self.BLM.Smart_Target = tbl.Value.Smart_Target or true
+		self.BLM.More_Move = tbl.Value.More_Move or false
+		self.Settings.Debug = tbl.Value.Debug or false
+		self.Settings.FuckAnimation = tbl.Value.FuckAnimation or true
+		self.Settings.RedPlayer = tbl.Value.RedPlayer or false
+		self.Settings.Between_the_Aetherial = tbl.Value.Between_the_Aetherial or false
+		self.Settings.ShowNextSkill = tbl.Value.ShowNextSkill or false
+		self.Settings.NewCombo = tbl.Value.NewCombo or false
+		self.Settings.ShowHotBar = tbl.Value.ShowHotBar or true
+		self.Settings.Lock = tbl.Value.Lock or true
+		self.Settings.DotBlackList = tbl.Value.DotBlackList or {}
+		self.Settings.InsureOGCD = tbl.Value.InsureOGCD or false
+		Language = tbl.Value.Language or "CN"
+
 	end
 end
 
@@ -712,6 +711,7 @@ local function SaveSettings()
 	tbl.Value.Lock = self.Settings.Lock
 	tbl.Value.DotBlackList = self.Settings.DotBlackList
 	tbl.Value.Language = Language
+	tbl.Value.InsureOGCD = self.Settings.InsureOGCD
 	FileSave(Settings,tbl)
 end
 
@@ -1310,7 +1310,7 @@ function self.Action(action, t)
 		else   --能力技处理
 			
 			ablTickTime = Now()
-			if ForceAbl then
+			if ForceAbl or self.Settings.InsureOGCD then
 				ForceAbl = false
 				self.DebugPrint("ForceCasting: " .. action.name .. "Target:" .. t.name)
 				if self.Skills[action.id].tag == "MO" then
@@ -1602,11 +1602,12 @@ end
 local function Polyglot_Combo()  --通晓循环，已适配全等级
 	if (not self.BLM.Burn) and self.BLM.Polyglot then
 		if  ((not self.BLM.AOE) or self.Target.aoe_num <= 1) then
+			
 			if level >= 98 then
-				if tongxiao >= 3 and (tongxiaoTime <= 50 or Xiang_Shu.cd <= 5) and IsReady(Yi_Yan) then return self.JoinACR(Yi_Yan.id), target end
+				if tongxiao >= 3 and (tongxiaoTime <= 50 or Xiang_Shu.cd <= 1) and IsReady(Yi_Yan) then return self.JoinACR(Yi_Yan.id), target end
 				if tongxiao >= 1 and (not self.BLM.More_Move) and BurnTime(target) and IsReady(Yi_Yan) then return self.JoinACR(Yi_Yan.id), target end  --爆发期打异言
 			elseif level >= 86 then
-				if tongxiao >= 2 and (tongxiaoTime <= 50 or Xiang_Shu.cd <= 5) and IsReady(Yi_Yan) then return self.JoinACR(Yi_Yan.id), target end
+				if tongxiao >= 2 and (tongxiaoTime <= 50 or Xiang_Shu.cd <= 1) and IsReady(Yi_Yan) then return self.JoinACR(Yi_Yan.id), target end
 				if tongxiao >= 1 and (not self.BLM.More_Move) and BurnTime(target) and IsReady(Yi_Yan) then return self.JoinACR(Yi_Yan.id), target end  --爆发期打异言
 			elseif level >= 80 then  --没有详述
 				if tongxiao >= 2 and tongxiaoTime <= 50 and IsReady(Yi_Yan) then return self.JoinACR(Yi_Yan.id), target end
@@ -1614,6 +1615,10 @@ local function Polyglot_Combo()  --通晓循环，已适配全等级
 			elseif level >= 70 then  --秽浊
 				if tongxiao >= 1 and tongxiaoTime <= 50 and IsReady(Hui_Zhuo) then return self.JoinACR(Hui_Zhuo.id), target end
 				if tongxiao >= 1 and BurnTime(target) and IsReady(Hui_Zhuo) then return self.JoinACR(Hui_Zhuo.id), target end  --爆发期
+			end
+			if level >= 80 then
+				local formoquan = mp <800 and fire_ice >= 1 and Mo_Quan:IsReady() and IsReady(Mo_Quan)
+				if tongxiao >= 1 and IsReady(Yi_Yan) and formoquan then return self.JoinACR(Yi_Yan.id), target end
 			end
 			return false ,nil
 		end
@@ -1626,6 +1631,10 @@ local function Polyglot_Combo()  --通晓循环，已适配全等级
 				if tongxiao >= 2 and tongxiaoTime <= 50 and IsReady(Hui_Zhuo) then return self.JoinACR(Hui_Zhuo.id), target end
 			elseif level >= 70 then  --秽浊
 				if tongxiao >= 1 and tongxiaoTime <= 50 and IsReady(Hui_Zhuo) then return self.JoinACR(Hui_Zhuo.id), target end
+			end
+			if level >= 80 then
+				local formoquan = mp <800 and fire_ice >= 1 and Mo_Quan:IsReady() and IsReady(Mo_Quan)
+				if tongxiao >= 1 and IsReady(Hui_Zhuo) and formoquan then return self.JoinACR(Hui_Zhuo.id), target end
 			end
 		end
 		return false ,nil
@@ -1661,7 +1670,8 @@ local function DOT_Combo()  --dot循环，已适配全等级
 		end
 	end
 	if t ~= nil and not self.Settings.DotBlackList[t.id] then
-		if self.BLM.DOT and (not self.BLM.Burn) and TensorCore.hasBuff(player, 3870) and ((not self.BLM.AOE) or self.Target.aoe_num <= 1)then
+		local candot = DOT_1.highlighted == 1 or DOT_2.highlighted == 1 or DOT_3.highlighted == 1
+		if self.BLM.DOT and (not self.BLM.Burn) and candot and ((not self.BLM.AOE) or self.Target.aoe_num <= 1) then
 			if level >= 92 then
 				if IsReady(DOT_3) then return self.JoinACR(DOT_3.id), t end
 			elseif level >= 45 then
@@ -1671,7 +1681,7 @@ local function DOT_Combo()  --dot循环，已适配全等级
 			end
 			return false ,nil
 		end
-
+		candot = DOT_AOE_1.highlighted == 1 or DOT_AOE_2.highlighted == 1 or DOT_AOE_3.highlighted == 1
 		if self.BLM.DOT and self.BLM.AOE and (not self.BLM.Burn) and TensorCore.hasBuff(player, 3870) and self.Target.aoe_num >= 2 then
 			if level >= 92 and fire_ice <= 0 then
 				if IsReady(DOT_AOE_3) then return self.JoinACR(DOT_AOE_3.id), t end
@@ -1692,7 +1702,7 @@ local function Fire_Ice()  --火转冰，已适配全等级
 	if ((not self.BLM.AOE) or self.Target.aoe_num <= 1) and not self.BLM.Burn then
 		if level >= 100 then
 			local canuse = ((Mo_Quan.cd >= 1 and Mo_Quan.cd <= 98) or (self.BLM.Manafont == false or self.BLM.CD == false) or not IsReady(Mo_Quan)) and IsReady(Ji_Ke) and IsReady(Xing_Ling) and Xing_Ling:IsReady() and fire_ice >= 1 and mp < 800 and Yao_Xing.highlighted == 0
-			if Ji_Ke:IsReady() and canuse and beilun < 25 and not ShunFaBuff() then
+			if Ji_Ke:IsReady() and canuse and beilun < 25 and Fire_4.cd/Fire_4.recasttime <= 0.5 and not ShunFaBuff() then
 				self.JoinACR(Ji_Ke.id)
 			end
 			--[[if Ji_Ke.cd <= 1.5 and canuse and beilun < 25 and not ShunFaBuff() and tongxiao>= 1 and MhachBLM.BLM.Triplecastnot and not MhachBLM.BLM.More_Move then  --差一点即刻好就给个瞬发但是必须是异言
@@ -1704,16 +1714,18 @@ local function Fire_Ice()  --火转冰，已适配全等级
 			if (ShunFaBuff()) and canuse then
 				self.JoinACR(Xing_Ling.id)
 			end
-			if Ji_Ke.cd <= 1 and canuse then
+			if Ji_Ke.cd <= 1 and canuse and Fire_4.cd/Fire_4.recasttime <= 0.5 then
 				self.JoinACR(Xing_Ling.id)
 			end
-			if Ji_Ke:IsReady() and IsReady(Ji_Ke) and mp < 800 and fire_ice <= -1 and Xing_Ling.cd >= 3.2 then
+			if Ji_Ke:IsReady() and IsReady(Ji_Ke) and mp < 800 and fire_ice <= -1 and Xing_Ling.cd >= 3.2 and Fire_4.cd/Fire_4.recasttime > 0.5 then
 				self.JoinACR(Ji_Ke.id)
 			end
-			if mp < 800 and fire_ice >= 1 and ((Mo_Quan.cd >= 1 and Mo_Quan.cd <= 98) or (self.BLM.Manafont == false or self.BLM.CD == false) or not IsReady(Mo_Quan)) and IsReady(Ice_3) then return self.JoinACR(Ice_3.id), target end
-			if ShunFaBuff() and fire_ice >= -2 and mp < 800 and IsReady(Ice_3) and ((Mo_Quan.cd >= 1 and Mo_Quan.cd <= 98) or (self.BLM.Manafont == false or self.BLM.CD == false) or not IsReady(Mo_Quan)) then return self.JoinACR(Ice_3.id), target end
+			local usedmoquan = ((Mo_Quan.cd >= 1 and Mo_Quan.cd <= 98) or (self.BLM.Manafont == false or self.BLM.CD == false) or not IsReady(Mo_Quan))
+			if mp < 800 and fire_ice >= 1 and usedmoquan and IsReady(Ice_3) then return self.JoinACR(Ice_3.id), target end
+			if ShunFaBuff() and fire_ice >= -2 and mp < 800 and IsReady(Ice_3) and usedmoquan then return self.JoinACR(Ice_3.id), target end
 		elseif level >= 35 then
-			if mp < 800 and fire_ice >= 1 and ((Mo_Quan.cd >= 1 and Mo_Quan.cd <= 98) or (self.BLM.Manafont == false or self.BLM.CD == false)) and IsReady(Ice_3) then return self.JoinACR(Ice_3.id), target end
+			local usedmoquan = ((Mo_Quan.cd >= 1 and Mo_Quan.cd <= 98) or (self.BLM.Manafont == false or self.BLM.CD == false) or not IsReady(Mo_Quan))
+			if mp < 800 and fire_ice >= 1 and IsReady(Ice_3) and usedmoquan then return self.JoinACR(Ice_3.id), target end
 
 		elseif level >= 4 then
 			if mp < 1600 and fire_ice >= 1 and IsReady(Xing_Ling) and Xing_Ling:IsReady() then self.JoinACR(Xing_Ling.id) end
@@ -1749,9 +1761,10 @@ end
 local function LeyLines() --黑魔纹,已适配全等级，需要调gcd优化----------------------------------------------------------------------------
 	if self.BLM.Ley_Lines and self.BLM.CD then
 		if level >= 52 then
-			if (not TensorCore.hasBuff(player, 737)) and Mo_Wen:IsReady() and (fire_ice >= 3 or self.BLM.Burn) and IsReady(Mo_Wen) then
+			local canuse = (Mo_Wen:IsReady() and (fire_ice >= 3 or self.BLM.Burn)) or (Mo_Wen.cd == 0 and (fire_ice >= 1 or self.BLM.Burn))
+			if (not TensorCore.hasBuff(player, 737)) and canuse and IsReady(Mo_Wen) then
 				--if San_Lian:IsReady() and MhachBLM.BLM.Triplecast and MhachBLM.NotHold(San_Lian) and (not MhachBLM.Settings.RedPlayer) and not TensorCore.hasBuff(player, 1211) then return San_Lian, player end
-				if ((Fire_4.cd/Fire_4.recasttime) >= 0.5) then self.JoinACR(Mo_Wen.id) end
+				self.JoinACR(Mo_Wen.id)
 			end
 		end
 		return false ,nil
@@ -1794,10 +1807,7 @@ end
 
 local function Manafont()  --魔泉，已适配全等级，需要对黑魔纹开魔泉进行优化-----------------------------------------------------------------------------------------
 	if self.BLM.Manafont and self.BLM.CD then
-		if level >=35 then  --解锁了魔泉和三档火
-			if mp <800 and fire_ice == 3 and Mo_Quan:IsReady() and IsReady(Mo_Quan) then
-			self.JoinACR(Mo_Quan.id) end
-		elseif level >= 30 then  --解锁了魔泉但是没三档火
+		if level >=30 then  --解锁了魔泉和三档火
 			if mp <800 and fire_ice >= 1 and Mo_Quan:IsReady() and IsReady(Mo_Quan) then
 			self.JoinACR(Mo_Quan.id) end
 		end
@@ -1904,18 +1914,18 @@ end
 
 local function CastWindow()
 
+
 	if ActionList:Get(1, GCDSkills:peek()).casttime == 0 then
 		return false ,nil
 	end
-
 	self.DebugPrint("Creat a OGCD window")
-	if tongxiao >= 1 and self.BLM.Polyglot and IsReady(Yi_Yan) and (self.Target.aoe_num == 1 or not self.BLM.AOE) then
+	if tongxiao >= 1 and self.BLM.Polyglot and IsReady(Yi_Yan) and (self.Target.aoe_num == 1 or not self.BLM.AOE) and OGCDSkills:peek() ~= 25796 then
 		--SendTextCommand("/ac " .. Yi_Yan.name)
 		return self.JoinACR(Yi_Yan.id, true)
-	elseif tongxiao >= 1 and self.BLM.Polyglot and IsReady(Hui_Zhuo) and level >= 80 and self.Target.aoe_num >= 2 and self.BLM.AOE then
+	elseif tongxiao >= 1 and self.BLM.Polyglot and IsReady(Hui_Zhuo) and level >= 80 and self.Target.aoe_num >= 2 and self.BLM.AOE and OGCDSkills:peek() ~= 25796 then
 		--SendTextCommand("/ac " .. Hui_Zhuo.name)
 		return self.JoinACR(Hui_Zhuo.id, true)
-	elseif Bei_Lun.highlighted == 1 and Fire_3.highlighted == 0 and IsReady(Bei_Lun) then
+	elseif Bei_Lun.highlighted == 1 and Fire_3.highlighted == 0 and IsReady(Bei_Lun) and beilun <= 3 then
 		--SendTextCommand("/ac " .. Bei_Lun.name)
 		return self.JoinACR(Bei_Lun.id, true)
 	--[[elseif TensorCore.hasBuff(player, 3870) and IsReady(DOT_3) and MhachBLM.BLM.DOT then  -------这里要改一下，
@@ -1959,8 +1969,8 @@ end
 
 local MainRotationList = {
 	[1] = LeyLines,
-	[2] = Manafont,
-	[3] = Amplifier,
+	[2] = Amplifier,
+	[3] = Manafont,
 	[4] = Polyglot_Combo,
 	[5] = DOT_Combo,
 	[6] = AOE_Combo,
@@ -2022,8 +2032,7 @@ function self.Cast()
 		MhachBLMRotation:Rotation()
 	end]]
 	if self.HasTarget() and TensorCore.mGetPlayer().alive and FFXIV_Common_BotRunning and not (Busy() or IsMounting() or IsMounted() or IsDismounting() or MIsLoading() or IsFlying() or IsDiving()) then
-		UpdateTimer()
-		SetValue()
+
 		self.TargetSet()
 		if self.BLM.AOE and self.Target.aoe_num >= 2 then
 			ForceAbl = true
@@ -2031,17 +2040,29 @@ function self.Cast()
 		GCDSkills:clear()
 		OGCDSkills:clear()
 		local s, t = MainRotation()
+		--[[if GCDSkills:isEmpty() then
+			ForceAbl = true
+		end]]
+		
 		--TensorCore.hasBuff(player, 4410)--无敌buff
 		if CanCastGCD() and not GCDSkills:isEmpty() then
 			--GCDSkills:printQueue()
 			if not OGCDSkills:isEmpty() then CastWindow() end
 			self.Action(GCDSkills:dequeue(), t)
-			GCDSkills:clear()
 		end
+		--[[if not OGCDSkills:isEmpty() then
+			if OGCDSkills:peek() == 158 then ForceAbl = true end
+		end]]
+
 		if CanCastABL() and not OGCDSkills:isEmpty() then
 			--OGCDSkills:printQueue()
-			self.Action(OGCDSkills:dequeue(), t)
-			OGCDSkills:clear()
+			if OGCDSkills:peek() == 3573 then
+				if ((Fire_4.cd/Fire_4.recasttime) >= 0.5) then
+					self.Action(OGCDSkills:dequeue(), t)
+				end
+			else
+				self.Action(OGCDSkills:dequeue(), t)
+			end
 		end
 
 	end
@@ -2096,6 +2117,8 @@ function self.Draw()
 				local value2, changed2 = GUI:Checkbox(T["MSet"][3][Language], self.Settings.FuckAnimation)
 				GUI:Spacing()
 				local value3, changed3 = GUI:Checkbox(T["MSet"][4][Language], self.Settings.RedPlayer)
+				GUI:Spacing()
+				local value8, changed8 = GUI:Checkbox(T["MSet"][11][Language], self.Settings.InsureOGCD)
 				GUI:Spacing()
 				local value4, changed4 = GUI:Checkbox(T["MSet"][5][Language], self.Settings.Between_the_Aetherial)
 				GUI:Spacing()
@@ -2159,6 +2182,10 @@ function self.Draw()
 				end
 				if changed7 then
 					self.Settings.Lock = value7
+					SaveSettings()
+				end
+				if changed8 then
+					self.Settings.InsureOGCD = value8
 					SaveSettings()
 				end
 				if changed6 then
@@ -2471,7 +2498,9 @@ function self.OnLoad()
 end
 
 function self.OnUpdate(event, tickcount)
+	UpdateTimer()
 	if TensorCore.mGetPlayer().alive and FFXIV_Common_BotRunning and not (Busy() or IsMounting() or IsMounted() or IsDismounting() or MIsLoading() or IsFlying() or IsDiving()) then
+		SetValue()
 		LockFace()
 		if (GUI:IsKeyDown(87) or GUI:IsKeyDown(65) or GUI:IsKeyDown(83) or GUI:IsKeyDown(68)) and player:GetSpeed().Forward == 0 then
 			player:SetSpeed(1, speed_F, speed_B, speed_S, speed_W)
