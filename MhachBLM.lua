@@ -2024,10 +2024,6 @@ function self.Cast()
 	if self.HasTarget() and TensorCore.mGetPlayer().alive and FFXIV_Common_BotRunning and not (Busy() or IsMounting() or IsMounted() or IsDismounting() or MIsLoading() or IsFlying() or IsDiving()) then
 		UpdateTimer()
 		SetValue()
-		LockFace()
-		if (GUI:IsKeyDown(87) or GUI:IsKeyDown(65) or GUI:IsKeyDown(83) or GUI:IsKeyDown(68)) and player:GetSpeed().Forward == 0 then
-			player:SetSpeed(1, speed_F, speed_B, speed_S, speed_W)
-		end
 		self.TargetSet()
 		if self.BLM.AOE and self.Target.aoe_num >= 2 then
 			ForceAbl = true
@@ -2475,10 +2471,12 @@ function self.OnLoad()
 end
 
 function self.OnUpdate(event, tickcount)
-	--[[if TensorCore.mGetPlayer().alive and FFXIV_Common_BotRunning and not (Busy() or IsMounting() or IsMounted() or IsDismounting() or MIsLoading() or IsFlying() or IsDiving()) then
-		
-		
-	end]]
+	if TensorCore.mGetPlayer().alive and FFXIV_Common_BotRunning and not (Busy() or IsMounting() or IsMounted() or IsDismounting() or MIsLoading() or IsFlying() or IsDiving()) then
+		LockFace()
+		if (GUI:IsKeyDown(87) or GUI:IsKeyDown(65) or GUI:IsKeyDown(83) or GUI:IsKeyDown(68)) and player:GetSpeed().Forward == 0 then
+			player:SetSpeed(1, speed_F, speed_B, speed_S, speed_W)
+		end
+	end
 end
 
 return MhachBLM
