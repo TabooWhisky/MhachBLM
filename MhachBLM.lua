@@ -12,6 +12,9 @@ MhachBLM = {
 		Burn = true,
 		Smart_Target = true,
 		More_Move = true,
+		Auto_Potion = true,
+		Short_Rotation = true,
+		Burn_Polyglot = true,
 	},
  	BLMGUI = {
 		WindowName = "MhachBLM BLM Control",  -- 窗口名称
@@ -21,21 +24,24 @@ MhachBLM = {
 					| GUI.WindowFlags_NoResize
 					| GUI.WindowFlags_NoCollapse,
 		Buttons = {  -- 定义按钮及其初始状态
-			{Label = "CD", Enabled = true, Clickable = true},
-			{Label = "DOT", Enabled = true, Clickable = true},
-			{Label = "AOE", Enabled = true, Clickable = true},
-			{Label = "爆发药", Enabled = true, Clickable = true},
-			{Label = "通晓", Enabled = true, Clickable = true},
-			{Label = "黑魔纹", Enabled = true, Clickable = true},
-			{Label = "魔泉", Enabled = true, Clickable = true},
-			{Label = "详述", Enabled = true, Clickable = true},
-			{Label = "三连咏唱", Enabled = true, Clickable = true},
-			{Label = "Burn", Enabled = true, Clickable = true},
-			{Label = "智能目标", Enabled = true, Clickable = true},
-			{Label = "更多移动", Enabled = true, Clickable = true},
+			{Label = "CD", Enabled = true, Clickable = true, Visible = true, Bind = {}},
+			{Label = "DOT", Enabled = true, Clickable = true, Visible = true, Bind = {}},
+			{Label = "AOE", Enabled = true, Clickable = true, Visible = true, Bind = {}},
+			{Label = "爆发药", Enabled = true, Clickable = true, Visible = true, Bind = {}},
+			{Label = "通晓", Enabled = true, Clickable = true, Visible = true, Bind = {}},
+			{Label = "黑魔纹", Enabled = true, Clickable = true, Visible = true, Bind = {}},
+			{Label = "魔泉", Enabled = true, Clickable = true, Visible = true, Bind = {}},
+			{Label = "详述", Enabled = true, Clickable = true, Visible = true, Bind = {}},
+			{Label = "三连咏唱", Enabled = true, Clickable = true, Visible = true, Bind = {}},
+			{Label = "Burn", Enabled = true, Clickable = true, Visible = true, Bind = {}},
+			{Label = "智能目标", Enabled = true, Clickable = true, Visible = true, Bind = {}},
+			{Label = "更多移动", Enabled = true, Clickable = true, Visible = true, Bind = {}},
+			{Label = "自动爆发药", Enabled = true, Clickable = true, Visible = true, Bind = {}},
+			{Label = "短循环", Enabled = true, Clickable = true, Visible = true, Bind = {}},
+			{Label = "打完豆子", Enabled = true, Clickable = true, Visible = true, Bind = {}},
 			},
-			ButtonWidth = 129,  -- 按钮宽度
-			ButtonHeight = 34,  -- 按钮高度
+			ButtonWidth = 105,  -- 按钮宽度
+			ButtonHeight = 30,  -- 按钮高度
 	},
 
 	NextSkillUI = {
@@ -123,10 +129,10 @@ self.BuffID = {
 
 
 function self.BLMGUI.ApplyButtonStyle(enabled, customStyle)
-    local DefaultEnabledColor = {0.47, 0.56, 0.24, 1.0}    -- 绿色（True）   
-    local DefaultDisabledColor = {0.5, 0.5, 0.5, 1.0}   -- 灰色（False）
-    local HoveredColor = {0.47, 0.56, 0.24, 1.0}           -- 启动状态下悬停    
-    local ActiveColor = {0.4, 0.1, 0.5, 1.0}            -- 启动状态下点击    
+    local DefaultEnabledColor = {0.18, 0.49, 0.20, 0.75}    -- 绿色（True）   
+    local DefaultDisabledColor = {0.07, 0.07, 0.07, 0.75}   -- 黑色（False）
+    local HoveredColor = {0.18, 0.49, 0.20, 0.75}           -- 启动状态下悬停    
+    local ActiveColor = {0.07, 0.07, 0.07, 0.75}            -- 启动状态下点击    
 
     -- 如果存在自定义样式，优先使用
     if customStyle then
@@ -145,10 +151,14 @@ function self.BLMGUI.ApplyButtonStyle(enabled, customStyle)
             GUI:PushStyleColor(GUI.Col_Button, unpack(DefaultEnabledColor))
             GUI:PushStyleColor(GUI.Col_ButtonHovered, unpack(HoveredColor))
             GUI:PushStyleColor(GUI.Col_ButtonActive, unpack(ActiveColor))
+			--GUI:PushStyleColor(GUI.Col_WindowBg, unpack(Transparent))
+			--GUI:PushStyleVar(GUI.StyleVar_Alpha, 0)
         else
             GUI:PushStyleColor(GUI.Col_Button, unpack(DefaultDisabledColor))
             GUI:PushStyleColor(GUI.Col_ButtonHovered, unpack(DefaultDisabledColor))
             GUI:PushStyleColor(GUI.Col_ButtonActive, unpack(DefaultDisabledColor))
+			--GUI:PushStyleColor(GUI.Col_WindowBg, unpack(Transparent))
+			--GUI:PushStyleVar(GUI.StyleVar_Alpha, 0)
         end
     end
 end
@@ -232,7 +242,24 @@ function self.RegisterSkill(action, isGCD, tag)
 				inHotbarList = false,  --是否在热键栏队列
 				tag = tag,
 			}
-
+		elseif tag == "Potion" then
+			self.Skills[846] = {
+				name = tag,
+				IsGCD = isGCD,  -- 是否为gcd技能
+				holdTime = 0,  --延后时间，秒
+				delayTime = 0, --acr队列时间，秒
+				iconPath =  GetLuaModsPath() .. [[ACR\CombatRoutines\MhachBLM\Icons\]] .. "846.png",  --图片路径
+				showHotbar = false,  --是否显示hotbar
+				changed = false,  --按钮中间值
+				keyBind = nil,  --绑定的按键
+				keyName = nil, --按键名称
+				keyC = false,  --Ctrl
+				keyA = false,  --ALT
+				keyS = false,  --Shift
+				keyBinding = false,  --是否正在绑定按键
+				inHotbarList = false,  --是否在热键栏队列
+				tag = tag,
+			}
 		else
 			self.DebugPrint("Action with ID " .. action.id .. " could not be find, is it valid ? Report to a dev.")
 		end
@@ -369,6 +396,16 @@ self.RegisterSkill(LB3, false) --极限技3
 local Sprint = ActionList:Get(1, 3)
 self.RegisterSkill(Sprint, false) -- 冲刺
 
+local Potion = ActionList:Get(1, 846)
+self.RegisterSkill(Potion, false, "Potion") -- 爆发药
+
+--[[local Potions = {  --爆发药物品id
+	["Grade 1"] = 44160,
+	["Grade 2"] = 44165,
+	["Grade 3"] = 45998,
+	["Grade 4"] = 49237
+}]]
+local Potions = {49237, 45998, 44165, 44160}
 self.RegisterSkill(nil, false, "LockFace") -- 自动面向
 
 local AutoAttack = ActionList:Get(5, 1).name  --自动攻击
@@ -565,9 +602,10 @@ local Settings = ModulePath .. [[Settings.lua]]
 local HotbarSettings = ModulePath .. [[HotbarSettings.lua]]
 local Icons = LuaPath .. [[ACR\CombatRoutines\MhachBLM\Icons\]]
 local Translation = ModulePath .. [[Translation.lua]]
+local QtSetting = ModulePath .. [[QtSetting.lua]]
 local defultIcon = Icons .. "disable.png"
 local MhachBLMTest = {}
-local T = {}  --这是翻译表
+local T = {}
 local Language = "CN"
 local LanguageList = {"CN","EN","JP"}
 local languageIndex = 1
@@ -579,18 +617,18 @@ local ablTickTime = 0  --能力技加入队列全局时间ms
 local gcdTickTime = 0  --gcd加入队列全局时间ms
 local settingUI = true  --acr设置主界面
 local hotbarUI = false  --hotbar设置界面
-
+local qtUI = false  --qt设置界面
 local faceX = nil  --面向坐标
 local faceY = nil
 local faceZ = nil
-
+local buttonsPerRow = 3  -- 每行显示3个按钮
 local speed_B = 2.4000000953674
 local speed_F = 6
 local speed_S = 2.4000000953674
 local speed_W = 2.4000000953674
 self.prepull = false
-
-
+local version = 1.98
+local queueUnlock = {true, true, true, true ,true}
 --------------------------------------------------------------------------------------------------
 
 local function getLanguageIndex(str, list)
@@ -652,7 +690,10 @@ local function LoadSettings()
 		self.BLM.Triplecast = tbl.Value.Triplecast or true
 		self.BLM.Burn = tbl.Value.Burn or false
 		self.BLM.Smart_Target = tbl.Value.Smart_Target or true
-		self.BLM.More_Move = tbl.Value.More_Move or false
+		self.BLM.More_Move = tbl.Value.More_Move or true
+		self.BLM.Auto_Potion = tbl.Value.Auto_Potion or true
+		self.BLM.Short_Rotation = tbl.Value.Short_Rotation or false
+		self.BLM.Burn_Polyglot = tbl.Value.Burn_Polyglot or false
 		self.Settings.Debug = tbl.Value.Debug or false
 		self.Settings.FuckAnimation = tbl.Value.FuckAnimation or true
 		self.Settings.RedPlayer = tbl.Value.RedPlayer or false
@@ -687,6 +728,9 @@ local function SaveSettings()
 		Potion = true,
 		Smart_Target = true,
 		Triplecast = true,
+		Auto_Potion = true,
+		Short_Rotation = true,
+		Burn_Polyglot = true,
 	},
 }
 	tbl.Value.CD = self.BLM.CD
@@ -701,6 +745,9 @@ local function SaveSettings()
 	tbl.Value.Burn = self.BLM.Burn
 	tbl.Value.Smart_Target = self.BLM.Smart_Target
 	tbl.Value.More_Move = self.BLM.More_Move
+	tbl.Value.Auto_Potion = self.BLM.Auto_Potion
+	tbl.Value.Short_Rotation = self.BLM.Short_Rotation
+	tbl.Value.Burn_Polyglot = self.BLM.Burn_Polyglot
 	tbl.Value.Debug = self.Settings.Debug
 	tbl.Value.FuckAnimation = self.Settings.FuckAnimation
 	tbl.Value.RedPlayer = self.Settings.RedPlayer
@@ -715,28 +762,42 @@ local function SaveSettings()
 	FileSave(Settings,tbl)
 end
 
+local function SaveQt()
+	local tbl = {}
+	tbl.Bind = {}
+	tbl.Visible = {}
+	tbl.buttonsPerRow = nil
+	for i = 1, 15 do
+		tbl.Bind[i] = self.BLMGUI.Buttons[i].Bind
+		tbl.Visible[i] = self.BLMGUI.Buttons[i].Visible
+	end
+	tbl.buttonsPerRow = buttonsPerRow
+	FileSave(QtSetting,tbl)
+end
+
+local function LoadQt()
+	local tbl = FileLoad(QtSetting)
+	if tbl ~= nil then
+		for i = 1, 15 do
+			self.BLMGUI.Buttons[i].Bind = tbl.Bind[i]
+			self.BLMGUI.Buttons[i].Visible = tbl.Visible[i]
+		end
+		buttonsPerRow = tbl.buttonsPerRow or 3
+	end
+end
+
 local function LoadTranslation()
 	local tbl = FileLoad(Translation)
 	if tbl ~= nil and Language ~= nil then
-		self.BLMGUI.Buttons = {  -- 定义按钮及其初始状态
-			{Label = tbl["QT"][1][Language], Enabled = true, Clickable = true},
-			{Label = tbl["QT"][2][Language], Enabled = true, Clickable = true},
-			{Label = tbl["QT"][3][Language], Enabled = true, Clickable = true},
-			{Label = tbl["QT"][4][Language], Enabled = true, Clickable = true},
-			{Label = tbl["QT"][5][Language], Enabled = true, Clickable = true},
-			{Label = tbl["QT"][6][Language], Enabled = true, Clickable = true},
-			{Label = tbl["QT"][7][Language], Enabled = true, Clickable = true},
-			{Label = tbl["QT"][8][Language], Enabled = true, Clickable = true},
-			{Label = tbl["QT"][9][Language], Enabled = true, Clickable = true},
-			{Label = tbl["QT"][10][Language], Enabled = true, Clickable = true},
-			{Label = tbl["QT"][11][Language], Enabled = true, Clickable = true},
-			{Label = tbl["QT"][12][Language], Enabled = true, Clickable = true},
-		}
+		for i = 1, 15 do
+			self.BLMGUI.Buttons[i].Label = tbl["QT"][i][Language]
+		end
+		d("翻译加载成功")
 		T = tbl
 		languageIndex = getLanguageIndex(Language, LanguageList)
 	end
-	
 end
+
 --------------------------------------------------------------------------------------------------------------------------------   键位设置
 
 self.KeyCodes =
@@ -1003,14 +1064,6 @@ local function listToString(list, delimiter)  --把list按分隔符转化为stri
 end
 
 
-
-
-
-
-
-
-
-
 -------------------------------------------------------本地存储优化性能
 local player = nil
 local playerid = nil
@@ -1201,30 +1254,51 @@ local function IsReady(action)  --检查技能能否可以进入技能队列
 	if level < action.level then  --没学会技能肯定不让用
 		return false
 	end
+	if action.id == 846 then
+		for _, value in ipairs(Potions) do
+			if TensorCore.getItem(value) ~= nil then
+				break
+			end
+			return false
+		end
+	end
 	if TensorCore.mGetTarget() ~= nil then
 		if IsSkillGCD(action.id) then  --是gcd技能
 			return (action:IsReady() or action:IsReady(TensorCore.mGetTarget().id)) and self.Skills[action.id].holdTime <= 0
 		else
-			return (action.cd <= 1 or action:IsReady() or action:IsReady(TensorCore.mGetTarget().id)) and self.Skills[action.id].holdTime <= 0
+			return ((action.cdmax - action.cd) <= 1 or action:IsReady() or action:IsReady(TensorCore.mGetTarget().id)) and self.Skills[action.id].holdTime <= 0
 		end
 	else
 		if IsSkillGCD(action.id) then  --是gcd技能
 			return action:IsReady() and self.Skills[action.id].holdTime <= 0
 		else
-			return (action.cd <= 1 or action:IsReady()) and self.Skills[action.id].holdTime <= 0
+			return ((action.cdmax - action.cd) <= 1 or action:IsReady()) and self.Skills[action.id].holdTime <= 0
 		end
 	end
 end
 
-local function CanCastGCD()  --可以使用gcd技能
+local function LockQueue(cdmax, cd)  --防止重复插入队列
+	if cd >= 600 and cd <= 700 then
+		queueUnlock = {false, true, true, true, true}
+	elseif cdmax - cd >= 600 and cdmax - cd <= 700 then
+		queueUnlock = {true, false, false, false, false}
+	elseif cd >= 1000 and cd <= 1100 then
+		queueUnlock = {true, true, false, true, true}
+	elseif cdmax - cd >= 400 and cdmax - cd <= 500 then
+		queueUnlock = {true, true, true, false, true}
+	elseif cdmax - cd <= 500 then
+		queueUnlock = {true, true, true, true, false}
+	end
+end
 
-	if (Fire_4.recasttime - Fire_4.cd <= 100 or (Fire_4.cd/Fire_4.recasttime) == 0) then
+local function CanCastGCD()  --可以使用gcd技能
+	local cdmax = Fire_4.recasttime*1000
+    local cd = Fire_4.cd*1000
+
+	if (cdmax - cd <= 500 and queueUnlock[5]) or (Fire_4.cd == 0 or not Fire_4.isoncd) then
+		LockQueue(cdmax, cd)
 		return true
 	end
-
-	if not Fire_4.isoncd then
-        return true
-    end
     return false
 end
 
@@ -1232,6 +1306,7 @@ local function CanCastABL()  --可以使用能力技
 
     local cdmax = Fire_4.cdmax*1000
     local cd = Fire_4.cd*1000
+	local g = cd/cdmax
 	local time
 
 	if player.castinginfo.channelingid == 0 then
@@ -1241,20 +1316,23 @@ local function CanCastABL()  --可以使用能力技
 		if(self.Settings.FuckAnimation) then  --如果开启了动画锁，则可以三插
 
 			if self.Settings.RedPlayer then  --红丸循环--添加一个hotbar判定
-				time = (cd >= 600 and cd <= 700) or (cdmax - cd >= 600 and cdmax - cd <= 700) or (cd >= 1200 and cd <= 1300) or (cdmax - cd >= 200 and cdmax - cd <= 300)
+				time = (cd >= 600 and cd <= 700 and queueUnlock[1]) or (cdmax - cd >= 600 and cdmax - cd <= 700 and queueUnlock[2]) or (cd >= 1000 and cd <= 1100 and queueUnlock[3]) or (cdmax - cd >= 400 and cdmax - cd <= 500 and queueUnlock[4])
 				if time then
+					LockQueue(cdmax, cd)
 					return true
 				end
 			else
-				time = (cd >= 600 and cd <= 700) or (cdmax - cd >= 600 and cdmax - cd <= 700) or (cd >= 1200 and cd <= 1300)
+				time = (cd >= 600 and cd <= 700 and queueUnlock[1]) or (cdmax - cd >= 600 and cdmax - cd <= 700 and queueUnlock[2]) or (cd >= 1000 and cd <= 1100 and queueUnlock[3])
 				if time then
+					LockQueue(cdmax, cd)
 					return true
 				end
 			end
 
 		else   --标准双插
-			time = (cd >= 600 and cd <= 700) or (cdmax - cd >= 600 and cdmax - cd <= 700)
+			time = (cd >= 600 and cd <= 700 and queueUnlock[1]) or (cdmax - cd >= 600 and cdmax - cd <= 700 and queueUnlock[2])
 			if time then
+				LockQueue(cdmax, cd)
 				return true
 			end
 		end--如果瞬发不够的话，还是要强插
@@ -1263,6 +1341,14 @@ local function CanCastABL()  --可以使用能力技
 	return false
 end
 
+local function AutoPotion()
+	for _, value in ipairs(Potions) do
+		local item = TensorCore.getItem(value)
+		if item ~= nil then
+			return item:Cast()
+		end
+	end
+end
 
 local function MOTargetSet()  --mo目标设置
 	local allys = TensorCore.getEntityGroupList("Party")
@@ -1293,11 +1379,21 @@ function self.Action(action, t)
     end
 	--t = t or self.TargetSet(self.Skills[action.id].tag)
 	if t == nil then
-		t = TensorCore.mGetTarget()
+		if TensorCore.mGetTarget() ~= nil then
+			t = TensorCore.mGetTarget()
+		end
 	end
     if (not (IsSkillGCD(action.id) or self.Skills[action.id].tag == "Target")) or (not t) then  --设置默认目标
         t = player
     end
+
+	if t == nil then
+		if self.Skills[action.id].tag == "MO" then
+			return SendTextCommand("/ac " .. action.name .. " <mo>")
+		else
+			return SendTextCommand("/ac " .. action.name)
+		end
+	end
 
 	--SendTextCommand("/ac " .. AutoAttack)
 	if t.distance2d <= action.range or t == player then
@@ -1312,20 +1408,32 @@ function self.Action(action, t)
 			ablTickTime = Now()
 			if ForceAbl or self.Settings.InsureOGCD then
 				ForceAbl = false
-				self.DebugPrint("ForceCasting: " .. action.name .. "Target:" .. t.name)
+				if action.id == 846 then
+					self.DebugPrint("ForceCasting: " .. "Potion" .. " Target:" .. t.name)
+				else
+					self.DebugPrint("ForceCasting: " .. action.name .. " Target:" .. t.name)
+				end
 				if self.Skills[action.id].tag == "MO" then
 					if MOTargetSet() then
 						return action:Cast(MOTargetSet())
 					end
 					--return SendTextCommand("/ac " .. action.name .. " <mo>")
+				elseif self.Skills[action.id].tag == "Potion" then
+					return AutoPotion()
 				else
 					return SendTextCommand("/ac " .. action.name)
 				end
 			else
 				ForceAbl = false
-				self.DebugPrint("WaveCasting: " .. action.name .. "Target:" .. t.name)
+				if action.id == 846 then
+					self.DebugPrint("WaveCasting: " .. "Potion" .. " Target:" .. t.name)
+				else
+					self.DebugPrint("WaveCasting: " .. action.name .. " Target:" .. t.name)
+				end
 				if self.Skills[action.id].tag == "MO" and MOTargetSet() then
 					return action:Cast(MOTargetSet())
+				elseif self.Skills[action.id].tag == "Potion" then
+					return AutoPotion()
 				else
 					return action:Cast(t.id)
 				end
@@ -1384,6 +1492,11 @@ local function UpdateTimer()
 	end
 
 end
+--------------------------------------------------------------------------------------------------------------------
+function self.BurnMP(time, useLeyLines, useManafont, PolyglotLast)  --调轴
+	
+end
+
 --------------------------------------------------------------------------------------------------------------------
 local function FindTargetsNum(e)  --查找目标数量
 	local count = 0
@@ -1524,8 +1637,9 @@ local function AOE_Combo()  --AOE循环，已适配全等级
 					if mp >= 800 and IsReady(He_Bao) then return self.JoinACR(He_Bao.id), t end
 					if mp < 800 and IsReady(Xing_Ling) and Xing_Ling:IsReady() then self.JoinACR(Xing_Ling.id) end  --火转冰
 				else  --双目标
+					if Fire_3.highlighted == 1 and IsReady(Fire_3) then return self.JoinACR(Fire_3.id), t end
 					if mp >= 2400 and IsReady(Fire_1) then return self.JoinACR(Fire_1.id), t end
-					if mp >= 800 and IsReady(He_Bao) then return self.JoinACR(Fire_1.id), t end
+					if mp >= 800 and IsReady(He_Bao) then return self.JoinACR(He_Bao.id), t end
 					if mp < 800 and IsReady(Ice_3) then return self.JoinACR(Ice_3.id), t end  --火转冰
 				end
 
@@ -1549,6 +1663,7 @@ local function AOE_Combo()  --AOE循环，已适配全等级
 				if IsReady(Ice_AOE) then return self.JoinACR(Ice_AOE.id), t end
 			else  --双目标
 				if fire_ice >= 0 then  --火阶段
+					if Fire_3.highlighted == 1 and IsReady(Fire_3) then return self.JoinACR(Fire_3.id), t end
 					if mp >= 1600 and IsReady(Fire_1) then return self.JoinACR(Fire_1.id), t end
 					if mp < 1600 and IsReady(Ice_3) then return self.JoinACR(Ice_3.id), t end
 				else  --冰阶段
@@ -1594,6 +1709,13 @@ local function AOE_Combo()  --AOE循环，已适配全等级
 				end
 			end
 		end
+		if level >= 82 and self.Target.aoe_num >= 3 and fire_ice == 0 and mp >= 1500 and IsReady(Fire_5) then
+			return self.JoinACR(Fire_5.id), t
+		elseif level >= 18 and self.Target.aoe_num >= 3 and fire_ice == 0 and mp >= 1500 and IsReady(Fire_2) then
+			return self.JoinACR(Fire_2.id), t
+		elseif level >= 35 and self.Target.aoe_num == 2 and fire_ice == 0 and mp >= 2000 and IsReady(Fire_3) then
+			return self.JoinACR(Fire_3.id), t
+		end
 		return false, nil
 	end
 	return false, nil
@@ -1604,17 +1726,21 @@ local function Polyglot_Combo()  --通晓循环，已适配全等级
 		if  ((not self.BLM.AOE) or self.Target.aoe_num <= 1) then
 			
 			if level >= 98 then
-				if tongxiao >= 3 and (tongxiaoTime <= 50 or Xiang_Shu.cd <= 1) and IsReady(Yi_Yan) then return self.JoinACR(Yi_Yan.id), target end
+				if tongxiao >= 3 and (tongxiaoTime <= 20 or Xiang_Shu.cdmax - Xiang_Shu.cd <= 1.5) and IsReady(Yi_Yan) then return self.JoinACR(Yi_Yan.id), target end
 				if tongxiao >= 1 and (not self.BLM.More_Move) and BurnTime(target) and IsReady(Yi_Yan) then return self.JoinACR(Yi_Yan.id), target end  --爆发期打异言
+				if tongxiao >= 1 and self.BLM.Burn_Polyglot and IsReady(Yi_Yan) then return self.JoinACR(Yi_Yan.id), target end  --打完异言
 			elseif level >= 86 then
-				if tongxiao >= 2 and (tongxiaoTime <= 50 or Xiang_Shu.cd <= 1) and IsReady(Yi_Yan) then return self.JoinACR(Yi_Yan.id), target end
+				if tongxiao >= 2 and (tongxiaoTime <= 20 or Xiang_Shu.cdmax - Xiang_Shu.cd <= 1.5) and IsReady(Yi_Yan) then return self.JoinACR(Yi_Yan.id), target end
 				if tongxiao >= 1 and (not self.BLM.More_Move) and BurnTime(target) and IsReady(Yi_Yan) then return self.JoinACR(Yi_Yan.id), target end  --爆发期打异言
+				if tongxiao >= 1 and self.BLM.Burn_Polyglot and IsReady(Yi_Yan) then return self.JoinACR(Yi_Yan.id), target end  --打完异言
 			elseif level >= 80 then  --没有详述
-				if tongxiao >= 2 and tongxiaoTime <= 50 and IsReady(Yi_Yan) then return self.JoinACR(Yi_Yan.id), target end
+				if tongxiao >= 2 and tongxiaoTime <= 20 and IsReady(Yi_Yan) then return self.JoinACR(Yi_Yan.id), target end
 				if tongxiao >= 1 and (not self.BLM.More_Move) and BurnTime(target) and IsReady(Yi_Yan) then return self.JoinACR(Yi_Yan.id), target end  --爆发期打异言
+				if tongxiao >= 1 and self.BLM.Burn_Polyglot and IsReady(Yi_Yan) then return self.JoinACR(Yi_Yan.id), target end  --打完异言
 			elseif level >= 70 then  --秽浊
-				if tongxiao >= 1 and tongxiaoTime <= 50 and IsReady(Hui_Zhuo) then return self.JoinACR(Hui_Zhuo.id), target end
+				if tongxiao >= 1 and tongxiaoTime <= 20 and IsReady(Hui_Zhuo) then return self.JoinACR(Hui_Zhuo.id), target end
 				if tongxiao >= 1 and BurnTime(target) and IsReady(Hui_Zhuo) then return self.JoinACR(Hui_Zhuo.id), target end  --爆发期
+				if tongxiao >= 1 and self.BLM.Burn_Polyglot and IsReady(Yi_Yan) then return self.JoinACR(Yi_Yan.id), target end  --打完异言
 			end
 			if level >= 80 then
 				local formoquan = mp <800 and fire_ice >= 1 and Mo_Quan:IsReady() and IsReady(Mo_Quan)
@@ -1624,13 +1750,21 @@ local function Polyglot_Combo()  --通晓循环，已适配全等级
 		end
 		if self.BLM.AOE and self.Target.aoe_num >= 2 then
 			if level >= 98 then
-				if tongxiao >= 3 and (tongxiaoTime <= 50 or Xiang_Shu.cd <= 5) and IsReady(Hui_Zhuo) then return self.JoinACR(Hui_Zhuo.id), target end
+				if tongxiao >= 3 and (tongxiaoTime <= 20 or Xiang_Shu.cdmax - Xiang_Shu.cd <= 1.5) and IsReady(Hui_Zhuo) then return self.JoinACR(Hui_Zhuo.id), target end
+				if tongxiao >= 1 and (not self.BLM.More_Move) and BurnTime(target) and IsReady(Hui_Zhuo) then return self.JoinACR(Hui_Zhuo.id), target end  --爆发期打异言
+				if tongxiao >= 1 and self.BLM.Burn_Polyglot and IsReady(Hui_Zhuo) then return self.JoinACR(Hui_Zhuo.id), target end  --打完异言
 			elseif level >= 86 then
-				if tongxiao >= 2 and (tongxiaoTime <= 50 or Xiang_Shu.cd <= 5) and IsReady(Hui_Zhuo) then return self.JoinACR(Hui_Zhuo.id), target end
+				if tongxiao >= 2 and (tongxiaoTime <= 20 or Xiang_Shu.cdmax - Xiang_Shu.cd <= 1.5) and IsReady(Hui_Zhuo) then return self.JoinACR(Hui_Zhuo.id), target end
+				if tongxiao >= 1 and (not self.BLM.More_Move) and BurnTime(target) and IsReady(Hui_Zhuo) then return self.JoinACR(Hui_Zhuo.id), target end  --爆发期打异言
+				if tongxiao >= 1 and self.BLM.Burn_Polyglot and IsReady(Hui_Zhuo) then return self.JoinACR(Hui_Zhuo.id), target end  --打完异言
 			elseif level >= 80 then  --没有详述
-				if tongxiao >= 2 and tongxiaoTime <= 50 and IsReady(Hui_Zhuo) then return self.JoinACR(Hui_Zhuo.id), target end
+				if tongxiao >= 2 and tongxiaoTime <= 20 and IsReady(Hui_Zhuo) then return self.JoinACR(Hui_Zhuo.id), target end
+				if tongxiao >= 1 and (not self.BLM.More_Move) and BurnTime(target) and IsReady(Hui_Zhuo) then return self.JoinACR(Hui_Zhuo.id), target end  --爆发期打异言
+				if tongxiao >= 1 and self.BLM.Burn_Polyglot and IsReady(Hui_Zhuo) then return self.JoinACR(Hui_Zhuo.id), target end  --打完异言
 			elseif level >= 70 then  --秽浊
-				if tongxiao >= 1 and tongxiaoTime <= 50 and IsReady(Hui_Zhuo) then return self.JoinACR(Hui_Zhuo.id), target end
+				if tongxiao >= 1 and tongxiaoTime <= 20 and IsReady(Hui_Zhuo) then return self.JoinACR(Hui_Zhuo.id), target end
+				if tongxiao >= 1 and (not self.BLM.More_Move) and BurnTime(target) and IsReady(Hui_Zhuo) then return self.JoinACR(Hui_Zhuo.id), target end  --爆发期打异言
+				if tongxiao >= 1 and self.BLM.Burn_Polyglot and IsReady(Hui_Zhuo) then return self.JoinACR(Hui_Zhuo.id), target end  --打完异言
 			end
 			if level >= 80 then
 				local formoquan = mp <800 and fire_ice >= 1 and Mo_Quan:IsReady() and IsReady(Mo_Quan)
@@ -1701,8 +1835,9 @@ end
 local function Fire_Ice()  --火转冰，已适配全等级
 	if ((not self.BLM.AOE) or self.Target.aoe_num <= 1) and not self.BLM.Burn then
 		if level >= 100 then
-			local canuse = ((Mo_Quan.cd >= 1 and Mo_Quan.cd <= 98) or (self.BLM.Manafont == false or self.BLM.CD == false) or not IsReady(Mo_Quan)) and IsReady(Ji_Ke) and IsReady(Xing_Ling) and Xing_Ling:IsReady() and fire_ice >= 1 and mp < 800 and Yao_Xing.highlighted == 0
-			if Ji_Ke:IsReady() and canuse and beilun < 25 and Fire_4.cd/Fire_4.recasttime <= 0.5 and not ShunFaBuff() then
+			local canuse = ((Mo_Quan.cd >= 1 and Mo_Quan.cd <= 98) or (self.BLM.Manafont == false or self.BLM.CD == false) or not IsReady(Mo_Quan)) and IsReady(Xing_Ling) and Xing_Ling:IsReady() and fire_ice >= 1 and mp < 800 and Yao_Xing.highlighted == 0
+			local canuse2 = ((Mo_Quan.cd >= 1 and Mo_Quan.cd <= 98) or (self.BLM.Manafont == false or self.BLM.CD == false) or not IsReady(Mo_Quan)) and IsReady(Xing_Ling) and Xing_Ling:IsReady() and fire_ice >= 1 and mp == 1200 and Yao_Xing.highlighted == 0 and lastcast == 25797
+			if Ji_Ke:IsReady() and IsReady(Ji_Ke) and ((canuse and Fire_4.cd/Fire_4.recasttime <= 0.5) or canuse2) and not ShunFaBuff() then
 				self.JoinACR(Ji_Ke.id)
 			end
 			--[[if Ji_Ke.cd <= 1.5 and canuse and beilun < 25 and not ShunFaBuff() and tongxiao>= 1 and MhachBLM.BLM.Triplecastnot and not MhachBLM.BLM.More_Move then  --差一点即刻好就给个瞬发但是必须是异言
@@ -1714,10 +1849,10 @@ local function Fire_Ice()  --火转冰，已适配全等级
 			if (ShunFaBuff()) and canuse then
 				self.JoinACR(Xing_Ling.id)
 			end
-			if Ji_Ke.cd <= 1 and canuse and Fire_4.cd/Fire_4.recasttime <= 0.5 then
+			if (Ji_Ke.cdmax - Ji_Ke.cd) <= 1 and canuse and Fire_4.cd/Fire_4.recasttime <= 0.5 then
 				self.JoinACR(Xing_Ling.id)
 			end
-			if Ji_Ke:IsReady() and IsReady(Ji_Ke) and mp < 800 and fire_ice <= -1 and Xing_Ling.cd >= 3.2 and Fire_4.cd/Fire_4.recasttime > 0.5 then
+			if Ji_Ke:IsReady() and IsReady(Ji_Ke) and mp < 800 and fire_ice <= -1 and (Xing_Ling.cdmax - Xing_Ling.cd) >= 2.5 and Fire_4.cd/Fire_4.recasttime > 0.5 and not ShunFaBuff() then
 				self.JoinACR(Ji_Ke.id)
 			end
 			local usedmoquan = ((Mo_Quan.cd >= 1 and Mo_Quan.cd <= 98) or (self.BLM.Manafont == false or self.BLM.CD == false) or not IsReady(Mo_Quan))
@@ -1759,6 +1894,11 @@ local function Ice_Fire()  --冰转火，已适配全等级
 end
 
 local function LeyLines() --黑魔纹,已适配全等级，需要调gcd优化----------------------------------------------------------------------------
+	if self.BLM.Potion and self.BLM.Auto_Potion and TensorCore.hasBuff(player, 737) then
+		if IsReady(Potion) then
+			self.JoinACR(Potion.id)
+		end
+	end
 	if self.BLM.Ley_Lines and self.BLM.CD then
 		if level >= 52 then
 			local canuse = (Mo_Wen:IsReady() and (fire_ice >= 3 or self.BLM.Burn)) or (Mo_Wen.cd == 0 and (fire_ice >= 1 or self.BLM.Burn))
@@ -1819,9 +1959,9 @@ end
 local function Amplifier()  --详述，已适配全等级
 	if self.BLM.Amplifier and self.BLM.CD then
 		if level >= 98 then  --三档豆子
-			if tongxiao <= 2 and Xiang_Shu.cd <= 1.5 and IsReady(Xiang_Shu) then self.JoinACR(Xiang_Shu.id) end
+			if tongxiao <= 2 and Xiang_Shu.cdmax - Xiang_Shu.cd <= 1.5 and IsReady(Xiang_Shu) then self.JoinACR(Xiang_Shu.id) end
 		elseif level >= 86 then  --二档豆子
-			if tongxiao <= 1 and Xiang_Shu.cd <= 1.5 and IsReady(Xiang_Shu) then self.JoinACR(Xiang_Shu.id) end
+			if tongxiao <= 1 and Xiang_Shu.cdmax - Xiang_Shu.cd <= 1.5 and IsReady(Xiang_Shu) then self.JoinACR(Xiang_Shu.id) end
 		end
 	end
 
@@ -1838,13 +1978,15 @@ local function Fire()  --火循环，已适配全等级
 	end
 	if ((not self.BLM.AOE) or self.Target.aoe_num <= 1) and not self.BLM.Burn then
 		if Yao_Xing.highlighted == 1 and IsReady(Yao_Xing) then return self.JoinACR(Yao_Xing.id), target end  --最大优先级，耀星
-		if fire_ice == 1 and mp >= 1600 and (not TensorCore.hasBuff(player, 165)) and Bei_Lun.highlighted == 1 and IsReady(Bei_Lun) then return self.JoinACR(Bei_Lun.id), target end  --进火打悖论获得火苗
-		if fire_ice == 3 and (not TensorCore.hasBuff(player, 165)) and mp>= 1600 and mp <= 3000 and beilun <= 3 and Bei_Lun.highlighted == 1 and IsReady(Bei_Lun) then return self.JoinACR(Bei_Lun.id), target end  --可调位置的悖论
-		if fire_ice == 1 and TensorCore.hasBuff(player, 165) and IsReady(Fire_3) then return self.JoinACR(Fire_3.id), target end  --火苗
-		if fire_ice == 3 and mp >= 1600 and IsReady(Fire_4) then return self.JoinACR(Fire_4.id), target end  --火4
+		if fire_ice == 1 and mp >= 1600 and Fire_3.highlighted == 0 and Bei_Lun.highlighted == 1 and IsReady(Bei_Lun) then return self.JoinACR(Bei_Lun.id), target end  --进火打悖论获得火苗
+		if fire_ice == 3 and Fire_3.highlighted == 0 and mp>= 1600 and mp <= 3000 and beilun <= 3 and Bei_Lun.highlighted == 1 and IsReady(Bei_Lun) then return self.JoinACR(Bei_Lun.id), target end  --可调位置的悖论
+		if fire_ice == 1 and Fire_3.highlighted == 1 and IsReady(Fire_3) then return self.JoinACR(Fire_3.id), target end  --火苗
+		if fire_ice == 3 and mp >= 800 and IsReady(He_Bao) and self.BLM.Short_Rotation and ((ice_heart == 3 and (beilun == 1 or beilun == 3)) or (ice_heart == 0 and (beilun == 13 or beilun == 15))) then return self.JoinACR(He_Bao.id), target end  --核爆短循环
+		if fire_ice == 3 and mp >= 1600 and IsReady(Fire_4) then return self.JoinACR(Fire_4.id), target end  --火4	
 		if mp >= 800 and mp <1600 and IsReady(Jue_Wang) then return self.JoinACR(Jue_Wang.id), target end  --绝望收尾
 		if mp >= 800 and mp <1600 and IsReady(He_Bao) then return self.JoinACR(He_Bao.id), target end  --低等级核爆收尾
-		if fire_ice >= 1 and TensorCore.hasBuff(player, 165) and IsReady(Fire_3) and level >= 35 and level <= 59 then return self.JoinACR(Fire_3.id), target end  --低等级有火苗就打火苗
+		if fire_ice >= 1 and fire_ice <= 2 and mp >= 2000 and ice_heart >= 1 and IsReady(Fire_3) and level >= 35 then return self.JoinACR(Fire_3.id), target end  --低等级火3升火
+		if fire_ice >= 1 and Fire_3.highlighted == 1 and IsReady(Fire_3) and level >= 35 and level <= 59 then return self.JoinACR(Fire_3.id), target end  --低等级有火苗就打火苗
 		if fire_ice >= 1 and mp >= 800 and IsReady(Fire_1) then return self.JoinACR(Fire_1.id), target end  --低等级打火1
 		return false ,nil
 	end
@@ -1868,7 +2010,7 @@ local function Fix()  --打aoe后对循环进行修补
 	if ((not self.BLM.AOE) or self.Target.aoe_num <= 1) and not self.BLM.Burn then
 		if beilun >= 25 then return self.JoinACR(Yao_Xing.id), target end
 		if (fire_ice >= 1 and fire_ice <= 2) then
-			if TensorCore.hasBuff(player, 165) and IsReady(Fire_3) then return self.JoinACR(Fire_3.id), target end
+			if Fire_3.highlighted == 1 and IsReady(Fire_3) then return self.JoinACR(Fire_3.id), target end
 			if mp >= 4000 and IsReady(Fire_3) then return self.JoinACR(Fire_3.id), target end
 			if mp > 800 and IsReady(Jue_Wang) then return self.JoinACR(Jue_Wang.id), target end
 			if mp > 800 and IsReady(He_Bao) then return self.JoinACR(He_Bao.id), target end
@@ -1910,6 +2052,14 @@ function self.CancelHotbarSkill(id)  --取消hotbar技能
 		skill.inHotbarList = false
 		HotbarSkills:removeAll(id)
 	end
+end
+
+function self.CancelAllHotbarSkill()
+	for _, id in ipairs(sortedIds) do
+    	local skill = self.Skills[id]
+		skill.inHotbarList = false
+	end
+	HotbarSkills:clear()
 end
 
 local function CastWindow()
@@ -1968,11 +2118,11 @@ function self.JoinACR(id, HighPriority)
 end
 
 local MainRotationList = {
-	[1] = LeyLines,
-	[2] = Amplifier,
-	[3] = Manafont,
-	[4] = Polyglot_Combo,
-	[5] = DOT_Combo,
+	[1] = Polyglot_Combo,
+	[2] = DOT_Combo,
+	[3] = Amplifier,
+	[4] = LeyLines,
+	[5] = Manafont,
 	[6] = AOE_Combo,
 	[7] = BURN,
 	[8] = Fire,
@@ -2002,7 +2152,7 @@ local function MainRotation()  --技能主循环
 			break
 		end
 	end
-	s, _ = HotbarRotation()
+	s, _ = Move_Combo()
 	if s then
 		t = _
 	end
@@ -2010,7 +2160,7 @@ local function MainRotation()  --技能主循环
 	if s then
 		t = _
 	end
-	s, _ = Move_Combo()
+	s, _ = HotbarRotation()
 	if s then
 		t = _
 	end
@@ -2031,37 +2181,43 @@ function self.Cast()
 	--[[if MhachBLMRotation ~= nil then
 		MhachBLMRotation:Rotation()
 	end]]
-	if self.HasTarget() and TensorCore.mGetPlayer().alive and FFXIV_Common_BotRunning and not (Busy() or IsMounting() or IsMounted() or IsDismounting() or MIsLoading() or IsFlying() or IsDiving()) then
+	if TensorCore.mGetPlayer().alive and FFXIV_Common_BotRunning and not (Busy() or IsMounting() or IsMounted() or IsDismounting() or MIsLoading() or IsFlying() or IsDiving()) then
+		if self.HasTarget() then
+			self.TargetSet()
+			if self.BLM.AOE and self.Target.aoe_num >= 2 then
+				ForceAbl = true
+			end
+			GCDSkills:clear()
+			OGCDSkills:clear()
+			local s, t = MainRotation()
+			--[[if GCDSkills:isEmpty() then
+				ForceAbl = true
+			end]]
+			
+			--TensorCore.hasBuff(player, 4410)--无敌buff
+			if CanCastGCD() and not GCDSkills:isEmpty() then
+				--GCDSkills:printQueue()
+				if not OGCDSkills:isEmpty() then CastWindow() end
+				self.Action(GCDSkills:dequeue(), t)
+			end
 
-		self.TargetSet()
-		if self.BLM.AOE and self.Target.aoe_num >= 2 then
-			ForceAbl = true
-		end
-		GCDSkills:clear()
-		OGCDSkills:clear()
-		local s, t = MainRotation()
-		--[[if GCDSkills:isEmpty() then
-			ForceAbl = true
-		end]]
-		
-		--TensorCore.hasBuff(player, 4410)--无敌buff
-		if CanCastGCD() and not GCDSkills:isEmpty() then
-			--GCDSkills:printQueue()
-			if not OGCDSkills:isEmpty() then CastWindow() end
-			self.Action(GCDSkills:dequeue(), t)
-		end
-		--[[if not OGCDSkills:isEmpty() then
-			if OGCDSkills:peek() == 158 then ForceAbl = true end
-		end]]
+			if not OGCDSkills:isEmpty() then
+				if OGCDSkills:peek() == 158 or OGCDSkills:peek() == 155 then ForceAbl = true end
+			end
 
-		if CanCastABL() and not OGCDSkills:isEmpty() then
-			--OGCDSkills:printQueue()
-			if OGCDSkills:peek() == 3573 then
-				if ((Fire_4.cd/Fire_4.recasttime) >= 0.5) then
+			if CanCastABL() and not OGCDSkills:isEmpty() then
+				--OGCDSkills:printQueue()
+				if OGCDSkills:peek() == 3573 then
+					if ((Fire_4.cd/Fire_4.recasttime) >= 0.5) then
+						self.Action(OGCDSkills:dequeue(), t)
+					end
+				else
 					self.Action(OGCDSkills:dequeue(), t)
 				end
-			else
-				self.Action(OGCDSkills:dequeue(), t)
+			end
+		else
+			if not HotbarSkills:isEmpty() then
+				self.Action(HotbarSkills:peek())
 			end
 		end
 
@@ -2098,17 +2254,27 @@ function self.Draw()
 					d("模型加载失败，请重新加载或检查文件完整性！")
 				end
             end]]
-			GUI:Button(T["MSet"][1][Language], 100, 62)
+			GUI:Button(T["MSet"][1][Language], 80, 30)
 			if GUI:IsItemClicked(0) then
 				settingUI = true
 				hotbarUI = false
+				qtUI = false
             end
 
 			GUI:SameLine()
-			GUI:Button(T["HSet"][1][Language], 100, 62)
+			GUI:Button(T["HSet"][1][Language], 80, 30)
 			if GUI:IsItemClicked(0) then
 				settingUI = false
 				hotbarUI = true
+				qtUI = false
+            end
+
+			GUI:SameLine()
+			GUI:Button(T["QSet"][1][Language], 80, 30)
+			if GUI:IsItemClicked(0) then
+				settingUI = false
+				hotbarUI = false
+				qtUI = true
             end
 			if settingUI then     --主设置界面
 				GUI:Spacing()
@@ -2142,8 +2308,13 @@ function self.Draw()
 				if languageChanged then
 					Language = LanguageList[index]
 					languageIndex = index
+					for i = 1, 15 do
+						self.BLMGUI.Buttons[i].Label = T["QT"][i][Language]
+					end
+					SaveSettings()
 				end
-				SaveSettings()
+				GUI:Spacing()
+				GUI:Text('Version:  ' .. version)
 				GUI:PopItemWidth()
 				if inputChanged then
 					if input ~= nil and input ~= '' then
@@ -2275,105 +2446,151 @@ function self.Draw()
 				end
 				GUI:End()
 			end
+
+			if qtUI then
+				GUI:Spacing()
+				GUI:Text(T["QSet"][2][Language])
+				GUI:SameLine()
+				GUI:Button("-", 16, 16)
+				if GUI:IsItemClicked(0) then
+					buttonsPerRow = buttonsPerRow - 1
+					SaveQt()
+				end
+				GUI:SameLine()
+				GUI:Text(" " .. buttonsPerRow .. " ")
+				GUI:SameLine()
+				GUI:Button("+", 16, 16)
+				if GUI:IsItemClicked(0) then
+					buttonsPerRow = buttonsPerRow + 1
+					SaveQt()
+				end
+				GUI:Spacing()
+				for index, value in ipairs(T["QSet"][0][Language]) do
+					GUI:Text(value)
+					GUI:SameLine()
+					local changed
+					self.BLMGUI.Buttons[index].Visible, changed = GUI:Checkbox(T["QSet"][3][Language] .. "##" .. value, self.BLMGUI.Buttons[index].Visible)
+					if changed then
+						SaveQt()
+					end
+				end
+				GUI:End()
+			end
         end
 	end
     if self ~= nil and self.BLMGUI ~= nil then
 
         if GUI:Begin(self.BLMGUI.WindowName, self.BLMGUI.IsVisible, self.BLMGUI.WindowFlags) then  --qt界面
-			local buttonsPerRow = 3  -- 每行显示两个按钮
+			--local buttonsPerRow = 3  -- 每行显示3个按钮
 			local buttonIndex = 0    -- 当前按钮索引
-
 			for _, button in ipairs(self.BLMGUI.Buttons) do
-				-- 普通按钮绘制
-				-- 应用样式
-				self.BLMGUI.ApplyButtonStyle(button.Enabled, button.Style)
+				if button.Visible then
+					-- 普通按钮绘制
+					-- 应用样式
+					self.BLMGUI.ApplyButtonStyle(button.Enabled, button.Style)
 
-				-- 检查按钮是否有单独设置的宽度和高度
-				local buttonWidth = button.Width or self.BLMGUI.ButtonWidth
-				local buttonHeight = button.Height or self.BLMGUI.ButtonHeight
+					-- 检查按钮是否有单独设置的宽度和高度
+					local buttonWidth = button.Width or self.BLMGUI.ButtonWidth
+					local buttonHeight = button.Height or self.BLMGUI.ButtonHeight
 
-				-- 绘制按钮
-				GUI:Button(button.Label, buttonWidth, buttonHeight)
+					-- 绘制按钮
+					GUI:Button(button.Label, buttonWidth, buttonHeight)
 
-				-- 恢复样式
-				GUI:PopStyleColor(button.Style and button.Style.Text and 4 or 3)
-
-				if button.Label == T["QT"][1][Language] then
-					button.Enabled = self.BLM.CD
-				elseif button.Label == T["QT"][2][Language] then
-					button.Enabled = self.BLM.DOT
-				elseif button.Label == T["QT"][3][Language] then
-					button.Enabled = self.BLM.AOE
-				elseif button.Label == T["QT"][4][Language] then
-					button.Enabled = self.BLM.Potion
-				elseif button.Label == T["QT"][5][Language] then
-					button.Enabled = self.BLM.Polyglot
-				elseif button.Label == T["QT"][6][Language] then
-					button.Enabled = self.BLM.Ley_Lines
-				elseif button.Label == T["QT"][7][Language] then
-					button.Enabled = self.BLM.Manafont
-				elseif button.Label == T["QT"][8][Language] then
-					button.Enabled = self.BLM.Amplifier
-				elseif button.Label == T["QT"][9][Language] then
-					button.Enabled = self.BLM.Triplecast
-				elseif button.Label == T["QT"][10][Language] then
-					button.Enabled = self.BLM.Burn
-				elseif button.Label == T["QT"][11][Language] then
-					button.Enabled = self.BLM.Smart_Target
-				elseif button.Label == T["QT"][12][Language] then
-					button.Enabled = self.BLM.More_Move
-				end
-
-				-- 检测点击事件
-				if button.Clickable and GUI:IsItemClicked() then
-					--button.Enabled = not button.Enabled
+					-- 恢复样式
+					GUI:PopStyleColor(button.Style and button.Style.Text and 4 or 3)
 
 					if button.Label == T["QT"][1][Language] then
-						self.BLM.CD = not self.BLM.CD
-						self.DebugPrint("CD now is " .. tostring(self.BLM.CD))
+						button.Enabled = self.BLM.CD
 					elseif button.Label == T["QT"][2][Language] then
-						self.BLM.DOT = not self.BLM.DOT
-						self.DebugPrint("DOT now is " .. tostring(self.BLM.DOT))
+						button.Enabled = self.BLM.DOT
 					elseif button.Label == T["QT"][3][Language] then
-						self.BLM.AOE = not self.BLM.AOE
-						self.DebugPrint("AOE now is " .. tostring(self.BLM.AOE))
+						button.Enabled = self.BLM.AOE
 					elseif button.Label == T["QT"][4][Language] then
-						self.BLM.Potion = not self.BLM.Potion
-						self.DebugPrint("Potion now is " .. tostring(self.BLM.Potion))
+						button.Enabled = self.BLM.Potion
 					elseif button.Label == T["QT"][5][Language] then
-						self.BLM.Polyglot = not self.BLM.Polyglot
-						self.DebugPrint("Polyglot now is " .. tostring(self.BLM.Polyglot))
+						button.Enabled = self.BLM.Polyglot
 					elseif button.Label == T["QT"][6][Language] then
-						self.BLM.Ley_Lines = not self.BLM.Ley_Lines
-						self.DebugPrint("Ley_Lines now is " .. tostring(self.BLM.Ley_Lines))
+						button.Enabled = self.BLM.Ley_Lines
 					elseif button.Label == T["QT"][7][Language] then
-						self.BLM.Manafont = not self.BLM.Manafont
-						self.DebugPrint("Manafont now is " .. tostring(self.BLM.Manafont))
+						button.Enabled = self.BLM.Manafont
 					elseif button.Label == T["QT"][8][Language] then
-						self.BLM.Amplifier = not self.BLM.Amplifier
-						self.DebugPrint("Amplifier now is " .. tostring(self.BLM.Amplifier))
+						button.Enabled = self.BLM.Amplifier
 					elseif button.Label == T["QT"][9][Language] then
-						self.BLM.Triplecast = not self.BLM.Triplecast
-						self.DebugPrint("Triplecast now is " .. tostring(self.BLM.Triplecast))
+						button.Enabled = self.BLM.Triplecast
 					elseif button.Label == T["QT"][10][Language] then
-						self.BLM.Burn = not self.BLM.Burn
-						self.DebugPrint("Burn now is " .. tostring(self.BLM.Burn))
+						button.Enabled = self.BLM.Burn
 					elseif button.Label == T["QT"][11][Language] then
-						self.BLM.Smart_Target = not self.BLM.Smart_Target
-						self.DebugPrint("Smart_Target now is " .. tostring(self.BLM.Smart_Target))
+						button.Enabled = self.BLM.Smart_Target
 					elseif button.Label == T["QT"][12][Language] then
-						self.BLM.More_Move = not self.BLM.More_Move
-						self.DebugPrint("More_Move now is " .. tostring(self.BLM.More_Move))
+						button.Enabled = self.BLM.More_Move
+					elseif button.Label == T["QT"][13][Language] then
+						button.Enabled = self.BLM.Auto_Potion
+					elseif button.Label == T["QT"][14][Language] then
+						button.Enabled = self.BLM.Short_Rotation
+					elseif button.Label == T["QT"][15][Language] then
+						button.Enabled = self.BLM.Burn_Polyglot
 					end
-					SaveSettings()
-				end
 
-				-- 布局控制：每行两个按钮
-				buttonIndex = buttonIndex + 1
-				if buttonIndex % buttonsPerRow == 0 then
-					GUI:Spacing()  -- 换行
-				else
-					GUI:SameLine()  -- 同一行显示
+					-- 检测点击事件
+					if button.Clickable and GUI:IsItemClicked() then
+						--button.Enabled = not button.Enabled
+
+						if button.Label == T["QT"][1][Language] then
+							self.BLM.CD = not self.BLM.CD
+							self.DebugPrint("CD now is " .. tostring(self.BLM.CD))
+						elseif button.Label == T["QT"][2][Language] then
+							self.BLM.DOT = not self.BLM.DOT
+							self.DebugPrint("DOT now is " .. tostring(self.BLM.DOT))
+						elseif button.Label == T["QT"][3][Language] then
+							self.BLM.AOE = not self.BLM.AOE
+							self.DebugPrint("AOE now is " .. tostring(self.BLM.AOE))
+						elseif button.Label == T["QT"][4][Language] then
+							self.BLM.Potion = not self.BLM.Potion
+							self.DebugPrint("Potion now is " .. tostring(self.BLM.Potion))
+						elseif button.Label == T["QT"][5][Language] then
+							self.BLM.Polyglot = not self.BLM.Polyglot
+							self.DebugPrint("Polyglot now is " .. tostring(self.BLM.Polyglot))
+						elseif button.Label == T["QT"][6][Language] then
+							self.BLM.Ley_Lines = not self.BLM.Ley_Lines
+							self.DebugPrint("Ley_Lines now is " .. tostring(self.BLM.Ley_Lines))
+						elseif button.Label == T["QT"][7][Language] then
+							self.BLM.Manafont = not self.BLM.Manafont
+							self.DebugPrint("Manafont now is " .. tostring(self.BLM.Manafont))
+						elseif button.Label == T["QT"][8][Language] then
+							self.BLM.Amplifier = not self.BLM.Amplifier
+							self.DebugPrint("Amplifier now is " .. tostring(self.BLM.Amplifier))
+						elseif button.Label == T["QT"][9][Language] then
+							self.BLM.Triplecast = not self.BLM.Triplecast
+							self.DebugPrint("Triplecast now is " .. tostring(self.BLM.Triplecast))
+						elseif button.Label == T["QT"][10][Language] then
+							self.BLM.Burn = not self.BLM.Burn
+							self.DebugPrint("Burn now is " .. tostring(self.BLM.Burn))
+						elseif button.Label == T["QT"][11][Language] then
+							self.BLM.Smart_Target = not self.BLM.Smart_Target
+							self.DebugPrint("Smart_Target now is " .. tostring(self.BLM.Smart_Target))
+						elseif button.Label == T["QT"][12][Language] then
+							self.BLM.More_Move = not self.BLM.More_Move
+							self.DebugPrint("More_Move now is " .. tostring(self.BLM.More_Move))
+						elseif button.Label == T["QT"][13][Language] then
+							self.BLM.Auto_Potion = not self.BLM.Auto_Potion
+							self.DebugPrint("Auto_Potion now is " .. tostring(self.BLM.Auto_Potion))
+						elseif button.Label == T["QT"][14][Language] then
+							self.BLM.Short_Rotation = not self.BLM.Short_Rotation
+							self.DebugPrint("Short_Rotation now is " .. tostring(self.BLM.Short_Rotation))
+						elseif button.Label == T["QT"][15][Language] then
+							self.BLM.Burn_Polyglot = not self.BLM.Burn_Polyglot
+							self.DebugPrint("Burn_Polyglot now is " .. tostring(self.BLM.Burn_Polyglot))
+						end
+						SaveSettings()
+					end
+
+					-- 布局控制：每行两个按钮
+					buttonIndex = buttonIndex + 1
+					if buttonIndex % buttonsPerRow == 0 then
+						GUI:Spacing()  -- 换行
+					else
+						GUI:SameLine()  -- 同一行显示
+					end
 				end
 			end
 			GUI:End()
@@ -2487,6 +2704,7 @@ function self.OnLoad()
 	LoadSettings()
 	LoadHotBar()
 	LoadTranslation()
+	LoadQt()
 	--[[MhachBLMRotation = FileLoad(Module)
 	if MhachBLMRotation ~= nil then
 		d(type(MhachBLMRotation))
