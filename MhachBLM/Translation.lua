@@ -74,6 +74,24 @@ local tbl =
             ["EN"] = "More Move",
             ["JP"] = "もっと移動",
         },
+        [13] =
+        {
+            ["CN"] = "自动爆发药",
+            ["EN"] = "Auto Potion",
+            ["JP"] = "自動発動薬",
+        },
+        [14] =
+        {
+            ["CN"] = "短循环",
+            ["EN"] = "Short Rotation",
+            ["JP"] = "短期循環",
+        },
+        [15] =
+        {
+            ["CN"] = "打完豆子",
+            ["EN"] = "Burn Polyglot",
+            ["JP"] = "ポリグロットを打ち終える",
+        },
     },
 
     ["MSet"] =
@@ -167,5 +185,35 @@ local tbl =
             ["JP"] = "キーを押してバインドする",
         },
     },
+
+    ["QSet"] =
+    {
+        [0] =
+        {
+            ["CN"] = {"CD        ","DOT       ","AOE       ","爆发药    ","通晓      ","黑魔纹    ","魔泉      ","详述      ","三连咏唱  ","燃尽爆发  ","智能目标  ","更多移动  ","自动爆发药","短循环    ","打完豆子  "},
+            ["EN"] = {"CD            ","DOT           ","AOE           ","Potion        ","Polyglot      ","Ley Lines     ","Manafont      ","Amplifier     ","Triplecast    ","Burn          ","Smart Target  ","More Move     ","Auto Potion   ","Short Rotation","Burn Polyglot "},
+            ["JP"] = {"CD","DOT","AOE","爆発薬","ポリグロット","黒魔紋","マナフォント","アンプリファイア","三連魔","燃え尽き爆発","スマート目標","もっと移動","自動発動薬","短期循環","ポリグロットを打ち終える"},
+        },
+
+        [1] =
+        {
+            ["CN"] = "Qt设置",
+            ["EN"] = "QtSetting",
+            ["JP"] = "Qt設定",
+        },
+        [2] =
+        {
+            ["CN"] = "每行数量",
+            ["EN"] = "QT per line",
+            ["JP"] = "各行の数量",
+        },
+        [3] =
+        {
+            ["CN"] = "显示",
+            ["EN"] = "Display",
+            ["JP"] = "表示する",
+        },
+    },
 }
+
 return tbl
