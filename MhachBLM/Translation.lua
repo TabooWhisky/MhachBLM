@@ -196,6 +196,18 @@ local tbl =
             ["EN"] = "Press the button to bind",
             ["JP"] = "キーを押してバインドする",
         },
+        [4] =
+        {
+            ["CN"] = "左键点击绑定/取消绑定.\n".."右键点击重置.",
+            ["EN"] = "Left Click to bind/unbind.\n".."Right Click to reset.",
+            ["JP"] = "左クリックでバインド/解除.\n".."右クリックでリセット.",
+        },
+        [5] =
+        {
+            ["CN"] = "左键点击以启用/禁用.",
+            ["EN"] = "Left Click to Enable/Disable.",
+            ["JP"] = "左クリックで有効化/無効化.",
+        },
     },
 
     ["QSet"] =
