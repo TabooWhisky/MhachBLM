@@ -162,6 +162,18 @@ local tbl =
             ["EN"] = "/ac input ability skill(ensure ability skill input)",
             ["JP"] = "/ac能力技を入力(能力技の入力を確実にする)",
         },
+        [12] =
+        {
+            ["CN"] = "滑板鞋(滑步速度变快)",
+            ["EN"] = "Skate shoes (faster sliding speed)",
+            ["JP"] = "スケートシューズ（滑る速度が速くなる）",
+        },
+        [13] =
+        {
+            ["CN"] = "灵魂漂移",
+            ["EN"] = "Soul Drift",
+            ["JP"] = "魂の漂流",
+        },
     },
 
     ["HSet"] =
