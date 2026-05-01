@@ -82,7 +82,9 @@ self.Settings = {
 	NewCombo = false,
 	ShowHotBar = false,   --显示热键栏
 	Lock = false,  --是否在战斗外禁用热键栏
-	DotBlackList = {}  --dot黑名单
+	DotBlackList = {},  --dot黑名单
+	SlideFast = false,  --滑板鞋
+	SoulDrift = false  --灵魂漂移
 }
 
 self.GUI = {
@@ -125,7 +127,6 @@ self.BuffID = {
 	Dot3 = 3871,
 	AoeDot3 = 3872
 }
-
 
 
 function self.BLMGUI.ApplyButtonStyle(enabled, customStyle)
@@ -171,7 +172,6 @@ function self.HasTarget()     --检查是否有有效目标
 	end
 end
 
---AnyoneCore.Settings.PrepullHelper.peloton = false
 
 
 -- This is to have a different logic for AOE healing if player is in a donjon or raid
@@ -225,7 +225,7 @@ function self.RegisterSkill(action, isGCD, tag)
     else
 		--特殊技能处理，比如锁定面向
 		if tag == "LockFace" then
-			self.Skills[-1] = {
+			self.Skills[-2] = {
 				name = tag,
 				IsGCD = isGCD,  -- 是否为gcd技能
 				holdTime = 0,  --延后时间，秒
@@ -249,6 +249,42 @@ function self.RegisterSkill(action, isGCD, tag)
 				holdTime = 0,  --延后时间，秒
 				delayTime = 0, --acr队列时间，秒
 				iconPath =  GetLuaModsPath() .. [[ACR\CombatRoutines\MhachBLM\Icons\]] .. "846.png",  --图片路径
+				showHotbar = false,  --是否显示hotbar
+				changed = false,  --按钮中间值
+				keyBind = nil,  --绑定的按键
+				keyName = nil, --按键名称
+				keyC = false,  --Ctrl
+				keyA = false,  --ALT
+				keyS = false,  --Shift
+				keyBinding = false,  --是否正在绑定按键
+				inHotbarList = false,  --是否在热键栏队列
+				tag = tag,
+			}
+		elseif tag == "AutoUmbralSoul" then
+			self.Skills[-1] = {
+				name = tag,
+				IsGCD = isGCD,  -- 是否为gcd技能
+				holdTime = 0,  --延后时间，秒
+				delayTime = 0, --acr队列时间，秒
+				iconPath =  GetLuaModsPath() .. [[ACR\CombatRoutines\MhachBLM\Icons\]] .. "autoUmbralSoul.png",  --图片路径
+				showHotbar = false,  --是否显示hotbar
+				changed = false,  --按钮中间值
+				keyBind = nil,  --绑定的按键
+				keyName = nil, --按键名称
+				keyC = false,  --Ctrl
+				keyA = false,  --ALT
+				keyS = false,  --Shift
+				keyBinding = false,  --是否正在绑定按键
+				inHotbarList = false,  --是否在热键栏队列
+				tag = tag,
+			}
+		elseif tag == "AutoLB" then
+			self.Skills[-3] = {
+				name = tag,
+				IsGCD = isGCD,  -- 是否为gcd技能
+				holdTime = 0,  --延后时间，秒
+				delayTime = 0, --acr队列时间，秒
+				iconPath =  GetLuaModsPath() .. [[ACR\CombatRoutines\MhachBLM\Icons\]] .. "203.png",  --图片路径
 				showHotbar = false,  --是否显示hotbar
 				changed = false,  --按钮中间值
 				keyBind = nil,  --绑定的按键
@@ -384,8 +420,8 @@ self.RegisterSkill(Ji_Ke, false) --即刻咏唱
 local Chen_Wen = ActionList:Get(1, 7559)
 self.RegisterSkill(Chen_Wen, false) --沉稳咏唱
 
-local LB = ActionList:Get(1, 203)
-self.RegisterSkill(LB, false) --极限技1
+local LB1 = ActionList:Get(1, 203)
+self.RegisterSkill(LB1, false) --极限技1
 
 local LB2 = ActionList:Get(1, 204)
 self.RegisterSkill(LB2, false) --极限技2
@@ -399,15 +435,13 @@ self.RegisterSkill(Sprint, false) -- 冲刺
 local Potion = ActionList:Get(1, 846)
 self.RegisterSkill(Potion, false, "Potion") -- 爆发药
 
---[[local Potions = {  --爆发药物品id
-	["Grade 1"] = 44160,
-	["Grade 2"] = 44165,
-	["Grade 3"] = 45998,
-	["Grade 4"] = 49237
-}]]
-local Potions = {49237, 45998, 44165, 44160}
+local Potions = {0, 49237, 45998, 44165, 44160, 39730, 37843, 36112, 36107, 31896, 29495, 27998, 27789, 24264, 22450, 19889, 16719, 14179, 12625, 4612, 4607, 4602, 4597}
+local PotionNames = {"Auto", "G4G", "G3G", "G2G", "G1G", "G8T", "G7T", "G6T", "G5T", "G4T", "G3T", "G2T", "G1T", "G3I", "G2I", "G1I", "Spuermax", "Max", "Draconian", "X", "Mega", "Hi", "Potion"}
+local PotionIndex = 1
+local nowPotion = 0
 self.RegisterSkill(nil, false, "LockFace") -- 自动面向
-
+self.RegisterSkill(nil, true, "AutoUmbralSoul") -- 自动灵极魂
+self.RegisterSkill(nil, false, "AutoLB") -- 自动灵极魂
 local AutoAttack = ActionList:Get(5, 1).name  --自动攻击
 local sortedIds = {}  --使技能按id排列
 for id in pairs(self.Skills) do
@@ -621,13 +655,14 @@ local qtUI = false  --qt设置界面
 local faceX = nil  --面向坐标
 local faceY = nil
 local faceZ = nil
+local SoulPoint = nil  --灵魂的坐标
+local drawer = Argus2.ShapeDrawer:new(GUI:ColorConvertFloat4ToU32(0, 0, 1, 1),nil,GUI:ColorConvertFloat4ToU32(0, 0, 1, 1),GUI:ColorConvertFloat4ToU32(0, 0, 1, 1),1)
 local buttonsPerRow = 3  -- 每行显示3个按钮
 local speed_B = 2.4000000953674
 local speed_F = 6
 local speed_S = 2.4000000953674
 local speed_W = 2.4000000953674
-self.prepull = false
-local version = 1.98
+local version = "1.98A"
 local queueUnlock = {true, true, true, true ,true}
 --------------------------------------------------------------------------------------------------
 
@@ -704,6 +739,8 @@ local function LoadSettings()
 		self.Settings.Lock = tbl.Value.Lock or true
 		self.Settings.DotBlackList = tbl.Value.DotBlackList or {}
 		self.Settings.InsureOGCD = tbl.Value.InsureOGCD or false
+		self.Settings.SlideFast = tbl.Value.SlideFast or false
+		self.Settings.SoulDrift = tbl.Value.SoulDrift or false
 		Language = tbl.Value.Language or "CN"
 
 	end
@@ -759,6 +796,8 @@ local function SaveSettings()
 	tbl.Value.DotBlackList = self.Settings.DotBlackList
 	tbl.Value.Language = Language
 	tbl.Value.InsureOGCD = self.Settings.InsureOGCD
+	tbl.Value.SlideFast = self.Settings.SlideFast
+	tbl.Value.SoulDrift = self.Settings.SoulDrift
 	FileSave(Settings,tbl)
 end
 
@@ -1055,12 +1094,18 @@ local function listToString(list, delimiter)  --把list按分隔符转化为stri
 	if list == nil then
 		return nil
 	end
-    delimiter = delimiter or ","  -- 默认分隔符为逗号
-    local result = {}
-    for i, v in ipairs(list) do
-        result[i] = tostring(v)  -- 将每个元素转为字符串
+	delimiter = delimiter or ","  -- 默认分隔符为逗号
+
+	local resultList = {}
+	local resultStr = {}
+	for id in pairs(list) do
+		table.insert(resultList, id)
+	end
+	table.sort(resultList, function(a, b) return a < b end)
+	for i, v in ipairs(resultList) do
+        resultStr[i] = tostring(v)  -- 将每个元素转为字符串
     end
-    return table.concat(result, delimiter)
+    return table.concat(resultStr, delimiter)
 end
 
 
@@ -1206,13 +1251,13 @@ function self.PlayerComboEmpty() --返回用户循环是否为空
 end
 ---------------------------------------------------------------------------------------
 local function LockFace()  --锁定面向
-	if player:GetSpeed().Forward > 0 then
+	if player:GetSpeed().Forward > 0 and player:GetSpeed().Forward < 9 then  --记录原始速度，太快太慢都不记录
 		speed_B = player:GetSpeed().Backward
 		speed_F = player:GetSpeed().Forward
 		speed_S = player:GetSpeed().Strafe
 		speed_W = player:GetSpeed().Walk
 	end
-	if self.Skills[-1].inHotbarList then
+	if self.Skills[-2].inHotbarList then
 		if Fire_4.cd >= 0 and Fire_4.cd <= 0.5 and not (GUI:IsKeyDown(87) or GUI:IsKeyDown(65) or GUI:IsKeyDown(83) or GUI:IsKeyDown(63)) then
 			player:SetSpeed(1, 0, 0, 0, 0)
 			SendTextCommand("/automove")
@@ -1227,40 +1272,149 @@ local function LockFace()  --锁定面向
 			player:SetFacing(faceX, faceY, faceZ)  --面向指定坐标
 		end
 	end
+	if (GUI:IsKeyDown(87) or GUI:IsKeyDown(65) or GUI:IsKeyDown(83) or GUI:IsKeyDown(68)) and player:GetSpeed().Forward == 0 then
+		player:SetSpeed(1, speed_F, speed_B, speed_S, speed_W)
+	end
 end
 
 function self.LockFaceOn()
-	self.Skills[-1].inHotbarList = true
+	self.Skills[-2].inHotbarList = true
 end
 
 function self.LockFaceOff()
-	self.Skills[-1].inHotbarList = false
+	self.Skills[-2].inHotbarList = false
 	faceX = nil
 	faceY = nil
 	faceZ = nil
 end
 
 function self.LockFacePosition(x, y, z)
-	self.Skills[-1].inHotbarList = true
+	self.Skills[-2].inHotbarList = true
 	faceX = x
 	faceY = y
 	faceZ = z
 end
-
 -----------------------------------------------------------------------------------------
+local function AutoUmbralSoul()  --自动灵极魂
+	if self.Skills[-1].inHotbarList and level >= 35 then
+		if fire_ice >= 1 and Xing_Ling.cd <= 0 then  --火状态需要转冰
+			SendTextCommand("/ac " .. Xing_Ling.name)
+		elseif fire_ice <= -1 and (mp < 10000 or (level >= 58 and ice_heart < 3)) and Ling_Ji_Hun.cd == 0 then
+			SendTextCommand("/ac " .. Ling_Ji_Hun.name)
+		elseif (mp >= 10000 and level < 58) or (mp >= 10000 and level >=58 and ice_heart >= 3) then
+			self.Skills[-1].inHotbarList = false
+		end
+	end
+end
 
+function self.AutoUmbralSoulOn()
+	self.Skills[-1].inHotbarList = true
+end
 
+function self.AutoUmbralSoulOff()
+	self.Skills[-1].inHotbarList = false
+end
+-----------------------------------------------------------------------------------------
+local function SlideFast()  --滑板鞋
+	if self.Settings.SlideFast and not self.Skills[-2].inHotbarList then
+		if player.castinginfo.channelingid ~= 0 then
+			player:SetSpeed(1, 10, 10, 10, 10)
+		else
+			player:SetSpeed(1, speed_F, speed_B, speed_S, speed_W)
+		end
+	end
+end
+
+local function MovePointWithWASD(point, speed)
+	local camForward = {
+        x = player.camera.x - player.pos.x,
+        y = 0,  -- 忽略垂直分量，保持水平移动
+        z = player.camera.z - player.pos.z
+    }
+
+	 -- 归一化前方向向量
+    local forwardLength = math.sqrt(camForward.x^2 + camForward.z^2)
+    if forwardLength > 0 then
+        camForward.x = camForward.x / forwardLength
+        camForward.z = camForward.z / forwardLength
+    end
+	  -- 计算右方向向量（前方向的垂直方向）
+    local camRight = {
+        x = -camForward.z,
+        y = 0,
+        z = camForward.x
+    }
+	 -- 计算移动方向
+    local moveDir = {x = 0, y = 0, z = 0}
+    
+    -- 根据按键组合计算移动方向
+    if GUI:IsKeyDown(87) then  -- 向前
+        moveDir.x = moveDir.x + camForward.x
+        moveDir.z = moveDir.z + camForward.z
+    end
+    if GUI:IsKeyDown(83) then  -- 向后
+        moveDir.x = moveDir.x - camForward.x
+        moveDir.z = moveDir.z - camForward.z
+    end
+    if GUI:IsKeyDown(65) then  -- 向左
+        moveDir.x = moveDir.x - camRight.x
+        moveDir.z = moveDir.z - camRight.z
+    end
+    if GUI:IsKeyDown(68) then  -- 向右
+        moveDir.x = moveDir.x + camRight.x
+        moveDir.z = moveDir.z + camRight.z
+    end
+
+	 -- 归一化移动方向（防止斜向移动速度过快）
+    local moveLength = math.sqrt(moveDir.x^2 + moveDir.z^2)
+    if moveLength > 0 then
+        moveDir.x = moveDir.x / moveLength
+        moveDir.z = moveDir.z / moveLength
+        
+        -- 计算移动距离
+        local moveDistance = speed * fpsTime
+        
+        -- 更新点位置
+        point.x = point.x + moveDir.x * moveDistance
+        point.z = point.z + moveDir.z * moveDistance
+        -- 保持y坐标不变（假设在水平面移动）
+        point.y = player.pos.y
+    end
+    return point
+end
+
+local function SoulDrift()  --灵魂漂移
+	if self.Settings.SoulDrift and not self.Skills[-2].inHotbarList then
+		if player.castinginfo.channelingid ~= 0 then
+			if SoulPoint == nil then
+				SoulPoint = player.pos
+				drawer:addCircle(SoulPoint.x, SoulPoint.y, SoulPoint.z, 0.03, true)
+			else
+				SoulPoint = MovePointWithWASD(SoulPoint, 6)
+				drawer:addCircle(SoulPoint.x, SoulPoint.y, SoulPoint.z, 0.03, true)
+			end
+		else
+			if SoulPoint ~= nil then
+				Hacks:TeleportToXYZ(SoulPoint.x,SoulPoint.y,SoulPoint.z,true)
+				SoulPoint = nil
+			end
+		end
+	end
+end
+-----------------------------------------------------------------------------------------
 local function IsReady(action)  --检查技能能否可以进入技能队列
 	if level < action.level then  --没学会技能肯定不让用
 		return false
 	end
 	if action.id == 846 then
 		for _, value in ipairs(Potions) do
-			if TensorCore.getItem(value) ~= nil then
-				break
-			end
-			return false
+			if value ~= 0 then
+				if TensorCore.getItem(value) ~= nil then
+					return true
+				end
+			end	
 		end
+		return false
 	end
 	if TensorCore.mGetTarget() ~= nil then
 		if IsSkillGCD(action.id) then  --是gcd技能
@@ -1342,10 +1496,28 @@ local function CanCastABL()  --可以使用能力技
 end
 
 local function AutoPotion()
-	for _, value in ipairs(Potions) do
-		local item = TensorCore.getItem(value)
+	if nowPotion ~= 0 then
+		local item = TensorCore.getItem(nowPotion)
 		if item ~= nil then
 			return item:Cast()
+		else
+			for _, value in ipairs(Potions) do
+				if value ~= 0 then
+					local item = TensorCore.getItem(value)
+					if item ~= nil then
+						return item:Cast()
+					end
+				end
+			end
+		end
+	else  --使用自动爆发药
+		for _, value in ipairs(Potions) do
+			if value ~= 0 then
+				local item = TensorCore.getItem(value)
+				if item ~= nil then
+					return item:Cast()
+				end
+			end
 		end
 	end
 end
@@ -1483,6 +1655,9 @@ local function UpdateTimer()
 		if lastcast == HotbarSkills:peek() and player.castinginfo.timesincecast <= 200 then
 			HotbarSkills:removeAll(lastcast)
 			self.Skills[lastcast].inHotbarList = false
+			if lastcast == LB1.id or lastcast == LB2.id or lastcast == LB3.id then
+				self.Skills[-3].inHotbarList = false
+			end
 		end
 	end
 	if not PlayerSkills:isEmpty() then
@@ -1493,9 +1668,9 @@ local function UpdateTimer()
 
 end
 --------------------------------------------------------------------------------------------------------------------
-function self.BurnMP(time, useLeyLines, useManafont, PolyglotLast)  --调轴
+--[[function self.BurnMP(time, useLeyLines, useManafont, PolyglotLast)  --调轴
 	
-end
+end]]
 
 --------------------------------------------------------------------------------------------------------------------
 local function FindTargetsNum(e)  --查找目标数量
@@ -1528,7 +1703,13 @@ local function FindMaxTargetsInRange(targets, r)  --查找最紧凑敌人
         if count > maxCount then
             maxCount = count
             bestTarget = center
-        end
+		elseif count == maxCount then
+			if bestTarget == nil then
+				bestTarget = center
+			elseif center.hp.current > bestTarget.hp.current then
+				bestTarget = center
+			end
+		end
     end
     return bestTarget, maxCount
 end
@@ -1547,10 +1728,18 @@ local function MissinMhachBLMyBuff(t, buffids) --查询目标身上是否有自�
 end
 
 local function FindDotTarget(e)  --智能dot目标选择器
+	local bestTarget = nil
+    local maxHp = 0
 	for _, ienemy in pairs(e) do
-		if MissinMhachBLMyBuff(ienemy, DotBuffs) then return ienemy end
+		if MissinMhachBLMyBuff(ienemy, DotBuffs) then
+			 -- 比较血量，选择血量最高的
+            if ienemy.hp.current > maxHp then
+                maxHp = ienemy.hp.current
+                bestTarget = ienemy
+            end
+		end
 	end
-	return nil
+	return bestTarget
 end
 
 
@@ -1803,7 +1992,7 @@ local function DOT_Combo()  --dot循环，已适配全等级
 			t = nil
 		end
 	end
-	if t ~= nil and not self.Settings.DotBlackList[t.id] then
+	if t ~= nil and not self.Settings.DotBlackList[t.contentid] then
 		local candot = DOT_1.highlighted == 1 or DOT_2.highlighted == 1 or DOT_3.highlighted == 1
 		if self.BLM.DOT and (not self.BLM.Burn) and candot and ((not self.BLM.AOE) or self.Target.aoe_num <= 1) then
 			if level >= 92 then
@@ -1965,10 +2154,6 @@ local function Amplifier()  --详述，已适配全等级
 		end
 	end
 
-	if self.BLM.Triplecast and self.prepull and IsReady(San_Lian) and not ShunFaBuff() then  --TensorReactions_CurrentTimer
-		self.prepull = false  --起手三连
-		self.JoinACR(San_Lian.id)
-	end
 	return false ,nil
 end
 
@@ -1987,6 +2172,7 @@ local function Fire()  --火循环，已适配全等级
 		if mp >= 800 and mp <1600 and IsReady(He_Bao) then return self.JoinACR(He_Bao.id), target end  --低等级核爆收尾
 		if fire_ice >= 1 and fire_ice <= 2 and mp >= 2000 and ice_heart >= 1 and IsReady(Fire_3) and level >= 35 then return self.JoinACR(Fire_3.id), target end  --低等级火3升火
 		if fire_ice >= 1 and Fire_3.highlighted == 1 and IsReady(Fire_3) and level >= 35 and level <= 59 then return self.JoinACR(Fire_3.id), target end  --低等级有火苗就打火苗
+		if mp <= 2000 and level >= 50 and level < 58 and IsReady(He_Bao) then return self.JoinACR(He_Bao.id), target end  --低等级核爆收尾
 		if fire_ice >= 1 and mp >= 800 and IsReady(Fire_1) then return self.JoinACR(Fire_1.id), target end  --低等级打火1
 		return false ,nil
 	end
@@ -2020,6 +2206,7 @@ local function Fix()  --打aoe后对循环进行修补
 		end
 		if (fire_ice <= -1 and fire_ice >= -2) then
 			if mp >= 10000 and IsReady(Fire_3) then return self.JoinACR(Fire_3.id), target end
+			if mp < 10000 and IsReady(Ice_3) then return self.JoinACR(Ice_3.id), target end
 			if mp < 10000 and IsReady(Ice_4) then return self.JoinACR(Ice_4.id), target end
 			if mp >=800 or ice_heart == 3 and IsReady(Fire_3) then return self.JoinACR(Fire_3.id), target end
 			if IsReady(Ice_1) then return self.JoinACR(Ice_1.id), target end
@@ -2035,8 +2222,88 @@ local function Fix()  --打aoe后对循环进行修补
 	return false ,nil
 end
 
+local function UpgradeSkill(id) --自动替换为升级技能
+	--悖论 - 火1 -冰1
+	if id == Fire_1.id or id == Ice_1.id or id == Bei_Lun.id then
+		if Bei_Lun.highlighted == 1 then
+			return Bei_Lun.id
+		else
+			if id == Bei_Lun.id then
+				if fire_ice >= 0 then
+					return Fire_1.id
+				else
+					return Ice_1.id
+				end
+			else
+				return id
+			end
+		end
+	end
+	--dot
+	if id == DOT_1.id or id == DOT_2.id or id == DOT_3.id then
+		if level >= 92 then
+			return DOT_3.id
+		elseif level >= 45 then
+			return DOT_2.id
+		elseif level >=6 then
+			return DOT_1.id
+		end
+	end
+	--aoe dot
+	if id == DOT_AOE_1.id or id == DOT_AOE_2.id or id == DOT_AOE_3.id then
+		if level >= 92 then
+			return DOT_AOE_3.id
+		elseif level >= 64 then
+			return DOT_AOE_2.id
+		elseif level >= 26 then
+			return DOT_AOE_1.id
+		end
+	end
+	--fireaoe
+	if id == Fire_2.id or id == Fire_5.id then
+		if level >= 82 then
+			return Fire_5.id
+		elseif level >= 18 then
+			return Fire_2.id
+		end
+	end
+	--iceaoe
+	if id == Ice_2.id or id == Ice_5.id then
+		if level >= 82 then
+			return Ice_5.id
+		elseif level >= 12 then
+			return Ice_2.id
+		end
+	end
+	--黑魔纹
+	if id == Mo_Wen.id or id == Mo_Wen_Reset.id then
+		if level >= 96 then
+			if TensorCore.hasBuff(player, 737) then
+				return Mo_Wen_Reset.id
+			else
+				return Mo_Wen.id
+			end
+		elseif level >= 52 then
+			return Mo_Wen.id
+		end
+	end
+	--lb
+	if id == LB1.id or id == LB2.id or id ==LB3.id then
+		if TensorCore.getLBGauge() >= 30000 then
+			return LB3.id
+		elseif TensorCore.getLBGauge() >= 20000 then
+			return LB2.id
+		elseif TensorCore.getLBGauge() >= 10000 then
+			return LB1.id
+		end
+	end
+end
 
-function self.UseHotbarSkill(id)   --使用hotbar技能
+function self.UseHotbarSkill(id, upgrade)   --使用hotbar技能
+	upgrade = upgrade or false  --是否自动替换为升级技能
+	if upgrade then
+		id = UpgradeSkill(id)
+	end
 	local skill = self.Skills[id]
 	self.DebugPrint("UseHotbarSkill:" .. skill.name)
 	if id >= 0 then  --真实技能进入技能队列
@@ -2193,7 +2460,11 @@ function self.Cast()
 			--[[if GCDSkills:isEmpty() then
 				ForceAbl = true
 			end]]
-			
+			if not OGCDSkills:isEmpty() then
+				if OGCDSkills:peek() == 158 then  --因为魔泉前的gcd技能是空的所以添加一个以确保窗口函数可以正常触发
+					self.JoinACR(Fire_4.id)
+				end
+			end
 			--TensorCore.hasBuff(player, 4410)--无敌buff
 			if CanCastGCD() and not GCDSkills:isEmpty() then
 				--GCDSkills:printQueue()
@@ -2202,7 +2473,7 @@ function self.Cast()
 			end
 
 			if not OGCDSkills:isEmpty() then
-				if OGCDSkills:peek() == 158 or OGCDSkills:peek() == 155 then ForceAbl = true end
+				if OGCDSkills:peek() == 155 then ForceAbl = true end
 			end
 
 			if CanCastABL() and not OGCDSkills:isEmpty() then
@@ -2220,7 +2491,6 @@ function self.Cast()
 				self.Action(HotbarSkills:peek())
 			end
 		end
-
 	end
 end
 
@@ -2233,9 +2503,25 @@ local function JoinHotbarQueue(skill, id)
 		else
 			HotbarSkills:removeAll(id)
 		end
-	else
+	elseif id == -2 then
 		if not skill.inHotbarList then
 			self.LockFaceOff()
+		end
+	elseif id == -3 then
+		if skill.inHotbarList then
+			if TensorCore.getLBGauge() < 10000 then
+				skill.inHotbarList = false
+			elseif TensorCore.getLBGauge() < 20000 then
+				HotbarSkills:enqueueUnic(LB1.id)
+			elseif TensorCore.getLBGauge() < 30000 then
+				HotbarSkills:enqueueUnic(LB2.id)
+			elseif TensorCore.getLBGauge() >= 30000 then
+				HotbarSkills:enqueueUnic(LB3.id)
+			end
+		else
+			HotbarSkills:removeAll(LB1.id)
+			HotbarSkills:removeAll(LB2.id)
+			HotbarSkills:removeAll(LB3.id)
 		end
 	end
 end
@@ -2294,6 +2580,10 @@ function self.Draw()
 				GUI:Spacing()
 				local value7, changed7 = GUI:Checkbox(T["MSet"][8][Language], self.Settings.Lock)
 				GUI:Spacing()
+				local value9, changed9 = GUI:Checkbox(T["MSet"][12][Language], self.Settings.SlideFast)
+				GUI:Spacing()
+				local value10, changed10 = GUI:Checkbox(T["MSet"][13][Language], self.Settings.SoulDrift)
+				GUI:Spacing()
 				GUI:Text(T["MSet"][9][Language])
 				GUI:SameLine()
 				local input, inputChanged = GUI:InputText("##Dot黑名单", listToString(self.Settings.DotBlackList, ","), GUI.InputTextFlags_CharsNoBlank)
@@ -2312,6 +2602,15 @@ function self.Draw()
 						self.BLMGUI.Buttons[i].Label = T["QT"][i][Language]
 					end
 					SaveSettings()
+				end
+				GUI:Spacing()
+				GUI:Text('Potion:  ')
+				GUI:SameLine()
+            	GUI:PushItemWidth(60)
+				local index, potionChanged = GUI:Combo('##potionkind', PotionIndex, PotionNames, 4)  --爆发药
+				if potionChanged then
+					nowPotion = Potions[index]
+					PotionIndex = index
 				end
 				GUI:Spacing()
 				GUI:Text('Version:  ' .. version)
@@ -2359,6 +2658,17 @@ function self.Draw()
 					self.Settings.InsureOGCD = value8
 					SaveSettings()
 				end
+				if changed9 then
+					self.Settings.SlideFast = value9
+					if value9 then self.Settings.SoulDrift = false end
+					SaveSettings()
+				end
+				if changed10 then
+					self.Settings.SoulDrift = value10
+					if value10 then self.Settings.SlideFast = false end
+					SaveSettings()
+				end
+
 				if changed6 then
 					self.Settings.NewCombo = value6
 					if self.Settings.NewCombo then
@@ -2700,10 +3010,9 @@ end
 function self.OnLoad()
 
     --ACR_MyProfile_MySavedVar = ACR.GetSetting("ACR_MyProfile_MySavedVar", false)
-	
+	LoadTranslation()
 	LoadSettings()
 	LoadHotBar()
-	LoadTranslation()
 	LoadQt()
 	--[[MhachBLMRotation = FileLoad(Module)
 	if MhachBLMRotation ~= nil then
@@ -2720,9 +3029,9 @@ function self.OnUpdate(event, tickcount)
 	if TensorCore.mGetPlayer().alive and FFXIV_Common_BotRunning and not (Busy() or IsMounting() or IsMounted() or IsDismounting() or MIsLoading() or IsFlying() or IsDiving()) then
 		SetValue()
 		LockFace()
-		if (GUI:IsKeyDown(87) or GUI:IsKeyDown(65) or GUI:IsKeyDown(83) or GUI:IsKeyDown(68)) and player:GetSpeed().Forward == 0 then
-			player:SetSpeed(1, speed_F, speed_B, speed_S, speed_W)
-		end
+		AutoUmbralSoul()
+		SlideFast()
+		SoulDrift()
 	end
 end
 
