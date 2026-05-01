@@ -24,21 +24,21 @@ MhachBLM = {
 					| GUI.WindowFlags_NoResize
 					| GUI.WindowFlags_NoCollapse,
 		Buttons = {  -- 定义按钮及其初始状态
-			{Label = "CD", Enabled = true, Clickable = true, Visible = true, Bind = {}},
-			{Label = "DOT", Enabled = true, Clickable = true, Visible = true, Bind = {}},
-			{Label = "AOE", Enabled = true, Clickable = true, Visible = true, Bind = {}},
-			{Label = "爆发药", Enabled = true, Clickable = true, Visible = true, Bind = {}},
-			{Label = "通晓", Enabled = true, Clickable = true, Visible = true, Bind = {}},
-			{Label = "黑魔纹", Enabled = true, Clickable = true, Visible = true, Bind = {}},
-			{Label = "魔泉", Enabled = true, Clickable = true, Visible = true, Bind = {}},
-			{Label = "详述", Enabled = true, Clickable = true, Visible = true, Bind = {}},
-			{Label = "三连咏唱", Enabled = true, Clickable = true, Visible = true, Bind = {}},
-			{Label = "Burn", Enabled = true, Clickable = true, Visible = true, Bind = {}},
-			{Label = "智能目标", Enabled = true, Clickable = true, Visible = true, Bind = {}},
-			{Label = "更多移动", Enabled = true, Clickable = true, Visible = true, Bind = {}},
-			{Label = "自动爆发药", Enabled = true, Clickable = true, Visible = true, Bind = {}},
-			{Label = "短循环", Enabled = true, Clickable = true, Visible = true, Bind = {}},
-			{Label = "打完豆子", Enabled = true, Clickable = true, Visible = true, Bind = {}},
+			{Label = "CD", Enabled = true, Clickable = true, Visible = true, Bind = {keyBind = nil, keyName = nil, keyC = false, keyA = false, keyS = false}, Binding = false},
+			{Label = "DOT", Enabled = true, Clickable = true, Visible = true, Bind = {keyBind = nil, keyName = nil, keyC = false, keyA = false, keyS = false}, Binding = false},
+			{Label = "AOE", Enabled = true, Clickable = true, Visible = true, Bind = {keyBind = nil, keyName = nil, keyC = false, keyA = false, keyS = false}, Binding = false},
+			{Label = "爆发药", Enabled = true, Clickable = true, Visible = true, Bind = {keyBind = nil, keyName = nil, keyC = false, keyA = false, keyS = false}, Binding = false},
+			{Label = "通晓", Enabled = true, Clickable = true, Visible = true, Bind = {keyBind = nil, keyName = nil, keyC = false, keyA = false, keyS = false}, Binding = false},
+			{Label = "黑魔纹", Enabled = true, Clickable = true, Visible = true, Bind = {keyBind = nil, keyName = nil, keyC = false, keyA = false, keyS = false}, Binding = false},
+			{Label = "魔泉", Enabled = true, Clickable = true, Visible = true, Bind = {keyBind = nil, keyName = nil, keyC = false, keyA = false, keyS = false}, Binding = false},
+			{Label = "详述", Enabled = true, Clickable = true, Visible = true, Bind = {keyBind = nil, keyName = nil, keyC = false, keyA = false, keyS = false}, Binding = false},
+			{Label = "三连咏唱", Enabled = true, Clickable = true, Visible = true, Bind = {keyBind = nil, keyName = nil, keyC = false, keyA = false, keyS = false}, Binding = false},
+			{Label = "Burn", Enabled = true, Clickable = true, Visible = true, Bind = {keyBind = nil, keyName = nil, keyC = false, keyA = false, keyS = false}, Binding = false},
+			{Label = "智能目标", Enabled = true, Clickable = true, Visible = true, Bind = {keyBind = nil, keyName = nil, keyC = false, keyA = false, keyS = false}, Binding = false},
+			{Label = "更多移动", Enabled = true, Clickable = true, Visible = true, Bind = {keyBind = nil, keyName = nil, keyC = false, keyA = false, keyS = false}, Binding = false},
+			{Label = "自动爆发药", Enabled = true, Clickable = true, Visible = true, Bind = {keyBind = nil, keyName = nil, keyC = false, keyA = false, keyS = false}, Binding = false},
+			{Label = "短循环", Enabled = true, Clickable = true, Visible = true, Bind = {keyBind = nil, keyName = nil, keyC = false, keyA = false, keyS = false}, Binding = false},
+			{Label = "打完豆子", Enabled = true, Clickable = true, Visible = true, Bind = {keyBind = nil, keyName = nil, keyC = false, keyA = false, keyS = false}, Binding = false},
 			},
 			ButtonWidth = 105,  -- 按钮宽度
 			ButtonHeight = 30,  -- 按钮高度
@@ -818,8 +818,8 @@ local function LoadQt()
 	local tbl = FileLoad(QtSetting)
 	if tbl ~= nil then
 		for i = 1, 15 do
-			self.BLMGUI.Buttons[i].Bind = tbl.Bind[i]
-			self.BLMGUI.Buttons[i].Visible = tbl.Visible[i]
+			self.BLMGUI.Buttons[i].Bind = tbl.Bind[i] or {keyBind = nil, keyName = nil, keyC = false, keyA = false, keyS = false}
+			self.BLMGUI.Buttons[i].Visible = tbl.Visible[i] or true
 		end
 		buttonsPerRow = tbl.buttonsPerRow or 3
 	end
@@ -2540,7 +2540,72 @@ function self.Draw()
 					d("模型加载失败，请重新加载或检查文件完整性！")
 				end
             end]]
-			GUI:Button(T["MSet"][1][Language], 80, 30)
+			GUI:Text("|                  |")
+			if GUI:IsItemClicked(0)  then
+				settingUI = true
+				hotbarUI = false
+				qtUI = false
+			end
+			if GUI:IsItemHovered() then
+				GUI:SetCursorPos(50,30)
+				if settingUI then
+					GUI:TextColored(1, 0, 0, 1, T["MSet"][1][Language])
+				else
+					GUI:TextDisabled(T["MSet"][1][Language])
+				end
+			elseif settingUI then
+				GUI:SetCursorPos(50,30)
+				GUI:TextColored(1, 0, 0, 1, T["MSet"][1][Language])
+			else
+				GUI:SetCursorPos(50,30)
+				GUI:Text(T["MSet"][1][Language])
+			end
+			GUI:SameLine()
+
+			GUI:Text("                        |")
+			if GUI:IsItemClicked(0)  then
+				settingUI = false
+				hotbarUI = true
+				qtUI = false
+			end
+			if GUI:IsItemHovered() then
+				GUI:SetCursorPos(160,30)
+				if hotbarUI then
+					GUI:TextColored(1, 0, 0, 1, T["HSet"][1][Language])
+				else
+					GUI:TextDisabled(T["HSet"][1][Language])
+				end
+			elseif hotbarUI then
+				GUI:SetCursorPos(160,30)
+				GUI:TextColored(1, 0, 0, 1, T["HSet"][1][Language])
+			else
+				GUI:SetCursorPos(160,30)
+				GUI:Text(T["HSet"][1][Language])
+			end
+			GUI:SameLine()
+
+			GUI:Text("                     |")
+			if GUI:IsItemClicked(0) then
+				settingUI = false
+				hotbarUI = false
+				qtUI = true
+			end
+			if GUI:IsItemHovered() then
+				GUI:SetCursorPos(310,30)
+				if qtUI then
+					GUI:TextColored(1, 0, 0, 1, T["QSet"][1][Language])
+				else
+					GUI:TextDisabled(T["QSet"][1][Language])
+				end
+			elseif qtUI then
+				GUI:SetCursorPos(310,30)
+				GUI:TextColored(1, 0, 0, 1, T["QSet"][1][Language])
+			else
+				GUI:SetCursorPos(310,30)
+				GUI:Text(T["QSet"][1][Language])
+			end
+			GUI:Separator()
+			--[[GUI:Button(T["MSet"][1][Language], 80, 30)
 			if GUI:IsItemClicked(0) then
 				settingUI = true
 				hotbarUI = false
@@ -2561,7 +2626,7 @@ function self.Draw()
 				settingUI = false
 				hotbarUI = false
 				qtUI = true
-            end
+            end]]
 			if settingUI then     --主设置界面
 				GUI:Spacing()
 				local value, changed = GUI:Checkbox(T["MSet"][2][Language], self.Settings.Debug)
@@ -2728,7 +2793,7 @@ function self.Draw()
 						SaveHotBar()
 					end
 					if GUI:IsItemHovered() then
-						GUI:SetTooltip("Left Click to add.\n".."Right Click to reset.")
+						GUI:SetTooltip(T["HSet"][4][Language])
 					end
 					GUI:SameLine()
 					--[[if skill.showHotbar then
@@ -2749,7 +2814,7 @@ function self.Draw()
 						SaveHotBar()
 					end
 					if GUI:IsItemHovered() then
-						GUI:SetTooltip("Left Click to Enable/Disable.")
+						GUI:SetTooltip(T["HSet"][5][Language])
 					end
 					GUI:Spacing()
 					--GUI:EndChild()
@@ -2778,10 +2843,43 @@ function self.Draw()
 				for index, value in ipairs(T["QSet"][0][Language]) do
 					GUI:Text(value)
 					GUI:SameLine()
+					local str = ""
+					if not self.BLMGUI.Buttons[index].Binding then
+						str = AdjustKeyName(self.BLMGUI.Buttons[index].Bind)
+						GUI:Button(str, 100, 16)---------------------------------------------------------
+						if GUI:IsItemClicked(0) then
+							self.BLMGUI.Buttons[index].Binding = true
+						end
+					else
+						str = T["HSet"][3][Language]
+						---------------------------绑定按键
+						local pressed = false
+						self.BLMGUI.Buttons[index].Bind.keyBind, self.BLMGUI.Buttons[index].Bind.keyName, self.BLMGUI.Buttons[index].Bind.keyC, self.BLMGUI.Buttons[index].Bind.keyA, self.BLMGUI.Buttons[index].Bind.keyS, pressed = IsKeyDown()
+						if pressed then
+							self.BLMGUI.Buttons[index].Binding = false
+							str = AdjustKeyName(self.BLMGUI.Buttons[index].Bind)
+							SaveQt()
+						end
+						GUI:Button(str, 100, 16)
+						if GUI:IsItemClicked(0) then
+							self.BLMGUI.Buttons[index].Binding = false
+						end
+					end
+					if GUI:IsItemClicked(1) then
+						self.BLMGUI.Buttons[index].Bind.keyBind, self.BLMGUI.Buttons[index].Bind.keyName, self.BLMGUI.Buttons[index].Bind.keyC, self.BLMGUI.Buttons[index].Bind.keyA, self.BLMGUI.Buttons[index].Bind.keyS = -1, "None", false, false, false
+						SaveQt()
+					end
+					if GUI:IsItemHovered() then
+						GUI:SetTooltip(T["HSet"][4][Language])
+					end
+					GUI:SameLine()
 					local changed
 					self.BLMGUI.Buttons[index].Visible, changed = GUI:Checkbox(T["QSet"][3][Language] .. "##" .. value, self.BLMGUI.Buttons[index].Visible)
 					if changed then
 						SaveQt()
+					end
+					if GUI:IsItemHovered() then
+						GUI:SetTooltip(T["HSet"][5][Language])
 					end
 				end
 				GUI:End()
@@ -2789,8 +2887,9 @@ function self.Draw()
         end
 	end
     if self ~= nil and self.BLMGUI ~= nil then
-
+		GUI:PushStyleColor(GUI.Col_WindowBg, 1, 1, 1, 0)
         if GUI:Begin(self.BLMGUI.WindowName, self.BLMGUI.IsVisible, self.BLMGUI.WindowFlags) then  --qt界面
+			GUI:PopStyleColor()
 			--local buttonsPerRow = 3  -- 每行显示3个按钮
 			local buttonIndex = 0    -- 当前按钮索引
 			for _, button in ipairs(self.BLMGUI.Buttons) do
@@ -2805,7 +2904,9 @@ function self.Draw()
 
 					-- 绘制按钮
 					GUI:Button(button.Label, buttonWidth, buttonHeight)
-
+					if GUI:IsItemHovered() then
+						GUI:SetTooltip(AdjustKeyName(button.Bind))
+					end
 					-- 恢复样式
 					GUI:PopStyleColor(button.Style and button.Style.Text and 4 or 3)
 
@@ -2842,7 +2943,7 @@ function self.Draw()
 					end
 
 					-- 检测点击事件
-					if button.Clickable and GUI:IsItemClicked() then
+					if button.Clickable and (GUI:IsItemClicked() or KeybindsPressed(button.Bind)) then
 						--button.Enabled = not button.Enabled
 
 						if button.Label == T["QT"][1][Language] then
@@ -2907,7 +3008,9 @@ function self.Draw()
 		end
 
 		if self.Settings.ShowNextSkill then   --下一个技能界面
+			GUI:PushStyleColor(GUI.Col_WindowBg, 1, 1, 1, 0)
 			if GUI:Begin(self.NextSkillUI.WindowName, self.NextSkillUI.IsVisible, self.NextSkillUI.WindowFlags) then
+				GUI:PopStyleColor()
 				if not GCDSkills:isEmpty() then
 					GUI:Image(self.Skills[GCDSkills:peek()].iconPath, 50, 50)
 				else
@@ -2926,7 +3029,9 @@ function self.Draw()
 		end
 
 		if self.Settings.ShowHotBar then   --热键栏界面
+			GUI:PushStyleColor(GUI.Col_WindowBg, 1, 1, 1, 0)
 			if GUI:Begin(self.HotBarUI.WindowName, self.HotBarUI.IsVisible, self.HotBarUI.WindowFlags) then
+				GUI:PopStyleColor()
 				--local icons = FolderList(Icons)
 				local arr = 12  --一行的数量
 				local index = 0
