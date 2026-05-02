@@ -82,7 +82,14 @@ self.Settings = {
 	NewCombo = false,
 	ShowHotBar = false,   --显示热键栏
 	Lock = false,  --是否在战斗外禁用热键栏
-	DotBlackList = {},  --dot黑名单
+	DotBlackList = {
+		-- 按contentid索引（contentid != -1 时使用）
+		byContentId = {},
+		-- 按name索引（contentid == -1 时使用）
+		byName = {},
+		-- 存储所有数据的列表（可选，用于遍历）
+		list = {}
+	},  --dot黑名单
 	SlideFast = false,  --滑板鞋
 	SoulDrift = false  --灵魂漂移
 }
@@ -201,8 +208,9 @@ function self.GetSkill(SkillID)
 end
 
 -- 这个工具函数用于注册一项技能并保存一些数据，这样我们就不必每次都请求它了。----------------------------------------------------------------------------------------------------------------------------------------------------
-function self.RegisterSkill(action, isGCD, tag)
+function self.RegisterSkill(action, isGCD, tag, bar)
 	tag = tag or "Default"  --传入一个tag，标记为AOE，DOT以特殊处理
+	if bar == nil then bar = true end
     if action then
         self.Skills[action.id] = {
 			name = action.name,
@@ -220,6 +228,7 @@ function self.RegisterSkill(action, isGCD, tag)
 			keyBinding = false,  --是否正在绑定按键
 			inHotbarList = false,  --是否在热键栏队列
 			tag = tag,
+			bar = bar
         }
         self.DebugPrint("Registered Skill: " .. action.name .. " (" .. action.id .. ")")
     else
@@ -241,6 +250,7 @@ function self.RegisterSkill(action, isGCD, tag)
 				keyBinding = false,  --是否正在绑定按键
 				inHotbarList = false,  --是否在热键栏队列
 				tag = tag,
+				bar = bar
 			}
 		elseif tag == "Potion" then
 			self.Skills[846] = {
@@ -259,6 +269,7 @@ function self.RegisterSkill(action, isGCD, tag)
 				keyBinding = false,  --是否正在绑定按键
 				inHotbarList = false,  --是否在热键栏队列
 				tag = tag,
+				bar = bar
 			}
 		elseif tag == "AutoUmbralSoul" then
 			self.Skills[-1] = {
@@ -277,6 +288,7 @@ function self.RegisterSkill(action, isGCD, tag)
 				keyBinding = false,  --是否正在绑定按键
 				inHotbarList = false,  --是否在热键栏队列
 				tag = tag,
+				bar = bar
 			}
 		elseif tag == "AutoLB" then
 			self.Skills[-3] = {
@@ -295,6 +307,7 @@ function self.RegisterSkill(action, isGCD, tag)
 				keyBinding = false,  --是否正在绑定按键
 				inHotbarList = false,  --是否在热键栏队列
 				tag = tag,
+				bar = bar
 			}
 		else
 			self.DebugPrint("Action with ID " .. action.id .. " could not be find, is it valid ? Report to a dev.")
@@ -349,7 +362,7 @@ local Ice_AOE = ActionList:Get(1, 159)
 self.RegisterSkill(Ice_AOE, true, "AOE") --玄冰
 
 local DOT_2 = ActionList:Get(1, 153)
-self.RegisterSkill(DOT_2, true, "DOT") --暴雷
+self.RegisterSkill(DOT_2, true, "DOT", false) --暴雷
 
 local He_Bao = ActionList:Get(1, 162)
 self.RegisterSkill(He_Bao, true, "AOE") --核爆
@@ -367,7 +380,7 @@ local Mo_Wen_Bu = ActionList:Get(1, 7419)
 self.RegisterSkill(Mo_Wen_Bu, false) --魔纹步
 
 local DOT_AOE_2 = ActionList:Get(1, 7420)
-self.RegisterSkill(DOT_AOE_2, true, "AOEDOT") --霹雷
+self.RegisterSkill(DOT_AOE_2, true, "AOEDOT", false) --霹雷
 
 local San_Lian = ActionList:Get(1, 7421)
 self.RegisterSkill(San_Lian, false) --三连咏唱
@@ -382,28 +395,28 @@ local Yi_Yan = ActionList:Get(1, 16507)
 self.RegisterSkill(Yi_Yan, true) --异言
 
 local Fire_5 = ActionList:Get(1, 25794)
-self.RegisterSkill(Fire_5, true, "AOE") --高烈炎
+self.RegisterSkill(Fire_5, true, "AOE", false) --高烈炎
 
 local Ice_5 = ActionList:Get(1, 25795)
-self.RegisterSkill(Ice_5, true, "AOE") --高冰冻
+self.RegisterSkill(Ice_5, true, "AOE", false) --高冰冻
 
 local Xiang_Shu = ActionList:Get(1, 25796)
 self.RegisterSkill(Xiang_Shu, false) --详述
 
 local DOT_3 = ActionList:Get(1, 36986)
-self.RegisterSkill(DOT_3, true, "DOT") --高闪雷
+self.RegisterSkill(DOT_3, true, "DOT", false) --高闪雷
 
 local DOT_AOE_3 = ActionList:Get(1, 36987)
-self.RegisterSkill(DOT_AOE_3, true, "AOEDOT") --高震雷
+self.RegisterSkill(DOT_AOE_3, true, "AOEDOT", false) --高震雷
 
 local Mo_Wen_Reset = ActionList:Get(1, 36988)
-self.RegisterSkill(Mo_Wen_Reset, false) --魔纹重置
+self.RegisterSkill(Mo_Wen_Reset, false, nil, false) --魔纹重置
 
 local Yao_Xing = ActionList:Get(1, 36989)
 self.RegisterSkill(Yao_Xing, true, "AOE") --耀星
 
 local Bei_Lun = ActionList:Get(1, 25797)
-self.RegisterSkill(Bei_Lun, true) --悖论
+self.RegisterSkill(Bei_Lun, true, nil, false) --悖论
 
 local Hun_Luan = ActionList:Get(1, 7560)
 self.RegisterSkill(Hun_Luan, false, "Target") --昏乱
@@ -421,13 +434,13 @@ local Chen_Wen = ActionList:Get(1, 7559)
 self.RegisterSkill(Chen_Wen, false) --沉稳咏唱
 
 local LB1 = ActionList:Get(1, 203)
-self.RegisterSkill(LB1, false) --极限技1
+self.RegisterSkill(LB1, false, nil, false) --极限技1
 
 local LB2 = ActionList:Get(1, 204)
-self.RegisterSkill(LB2, false) --极限技2
+self.RegisterSkill(LB2, false, nil, false) --极限技2
 
 local LB3 = ActionList:Get(1, 205)
-self.RegisterSkill(LB3, false) --极限技3
+self.RegisterSkill(LB3, false, nil, false) --极限技3
 
 local Sprint = ActionList:Get(1, 3)
 self.RegisterSkill(Sprint, false) -- 冲刺
@@ -637,6 +650,7 @@ local HotbarSettings = ModulePath .. [[HotbarSettings.lua]]
 local Icons = LuaPath .. [[ACR\CombatRoutines\MhachBLM\Icons\]]
 local Translation = ModulePath .. [[Translation.lua]]
 local QtSetting = ModulePath .. [[QtSetting.lua]]
+local DotSettings = ModulePath .. [[DotSettings.lua]]
 local defultIcon = Icons .. "disable.png"
 local MhachBLMTest = {}
 local T = {}
@@ -644,14 +658,15 @@ local Language = "CN"
 local LanguageList = {"CN","EN","JP"}
 local languageIndex = 1
 local ForceAbl = false   --是否强制硬插
-local lastSkill = nil  --上一个技能
-local lastABLTime = 0  --上一个能力技的全局时间ms
-local lastGCDTime = 0  --上一个gcd技能的全局时间ms
-local ablTickTime = 0  --能力技加入队列全局时间ms
-local gcdTickTime = 0  --gcd加入队列全局时间ms
+--local lastSkill = nil  --上一个技能
+--local lastABLTime = 0  --上一个能力技的全局时间ms
+--local lastGCDTime = 0  --上一个gcd技能的全局时间ms
+--local ablTickTime = 0  --能力技加入队列全局时间ms
+--local gcdTickTime = 0  --gcd加入队列全局时间ms
 local settingUI = true  --acr设置主界面
 local hotbarUI = false  --hotbar设置界面
 local qtUI = false  --qt设置界面
+local blacklistUI = false --黑名单界面
 local faceX = nil  --面向坐标
 local faceY = nil
 local faceZ = nil
@@ -662,8 +677,10 @@ local speed_B = 2.4000000953674
 local speed_F = 6
 local speed_S = 2.4000000953674
 local speed_W = 2.4000000953674
-local version = "1.98A"
+local version = "1.98B"
 local queueUnlock = {true, true, true, true ,true}
+local tempStr = {"", "", ""}  --给dot黑名单用的
+local LeyLinesPos = nil
 --------------------------------------------------------------------------------------------------
 
 local function getLanguageIndex(str, list)
@@ -737,7 +754,6 @@ local function LoadSettings()
 		self.Settings.NewCombo = tbl.Value.NewCombo or false
 		self.Settings.ShowHotBar = tbl.Value.ShowHotBar or true
 		self.Settings.Lock = tbl.Value.Lock or true
-		self.Settings.DotBlackList = tbl.Value.DotBlackList or {}
 		self.Settings.InsureOGCD = tbl.Value.InsureOGCD or false
 		self.Settings.SlideFast = tbl.Value.SlideFast or false
 		self.Settings.SoulDrift = tbl.Value.SoulDrift or false
@@ -793,7 +809,6 @@ local function SaveSettings()
 	tbl.Value.NewCombo = self.Settings.NewCombo
 	tbl.Value.ShowHotBar = self.Settings.ShowHotBar
 	tbl.Value.Lock = self.Settings.Lock
-	tbl.Value.DotBlackList = self.Settings.DotBlackList
 	tbl.Value.Language = Language
 	tbl.Value.InsureOGCD = self.Settings.InsureOGCD
 	tbl.Value.SlideFast = self.Settings.SlideFast
@@ -811,7 +826,7 @@ local function SaveQt()
 		tbl.Visible[i] = self.BLMGUI.Buttons[i].Visible
 	end
 	tbl.buttonsPerRow = buttonsPerRow
-	FileSave(QtSetting,tbl)
+	FileSave(QtSetting, tbl)
 end
 
 local function LoadQt()
@@ -834,6 +849,23 @@ local function LoadTranslation()
 		d("翻译加载成功")
 		T = tbl
 		languageIndex = getLanguageIndex(Language, LanguageList)
+	end
+end
+
+local function SaveDot()
+	local tbl = {}
+	tbl = self.Settings.DotBlackList
+	FileSave(DotSettings, tbl)
+end
+
+local function LoadDot()
+	local tbl = FileLoad(DotSettings)
+	if tbl ~= nil then
+		if tbl.list == nil then
+			self.Settings.DotBlackList = {byContentId = {},byName = {},list = {}}
+		else
+			self.Settings.DotBlackList = tbl
+		end
 	end
 end
 
@@ -1108,8 +1140,128 @@ local function listToString(list, delimiter)  --把list按分隔符转化为stri
     return table.concat(resultStr, delimiter)
 end
 
+local function AddDotBlackList(name, contentid, hp)  --把黑名单数据存储为一个list
+	name = name or ""
+	contentid = contentid or -1
+	hp = hp or 100
+	local data = {name = name, contentid = contentid, hp = hp}
+    
+    if contentid ~= -1 then
+        -- contentid != -1 时，contentid必须唯一
+        -- 如果已存在相同contentid，则覆盖
+        local oldData = self.Settings.DotBlackList.byContentId[contentid]
+        if oldData then
+            -- 从list中移除旧数据
+            for i, v in ipairs(self.Settings.DotBlackList.list) do
+                if v == oldData then
+                    table.remove(self.Settings.DotBlackList.list, i)
+                    break
+                end
+            end
+        end
+        -- 存入新数据
+        self.Settings.DotBlackList.byContentId[contentid] = data
+    else
+        -- contentid == -1 时，name必须唯一
+        -- 如果已存在相同name，则覆盖
+        local oldData = self.Settings.DotBlackList.byName[name]
+        if oldData then
+            -- 从list中移除旧数据
+            for i, v in ipairs(self.Settings.DotBlackList.list) do
+                if v == oldData then
+                    table.remove(self.Settings.DotBlackList.list, i)
+                    break
+                end
+            end
+        end
+        -- 存入新数据
+        self.Settings.DotBlackList.byName[name] = data
+    end
+    -- 添加到列表
+    table.insert(self.Settings.DotBlackList.list, data)
+    return data
+end
 
--------------------------------------------------------本地存储优化性能
+local function MatchDotBlackList(name, contentid)  --把黑名单list拆分为一些数据
+	-- 优先使用contentid匹配（contentid != -1时）
+    if contentid ~= -1 then
+        local data = self.Settings.DotBlackList.byContentId[contentid]
+        if data then
+            return true, data.hp
+        end
+    end
+    
+    -- 使用name匹配（contentid = -1 或 contentid未匹配到时）
+    local data = self.Settings.DotBlackList.byName[name]
+    if data then
+        return true, data.hp
+    end
+    
+    -- 未匹配到
+    return false, 0
+end
+
+local function RemoveDotBlackList(name, contentid)
+	local removedData = nil
+    
+    if contentid ~= -1 then
+        -- contentid != -1 时，从byContentId中删除
+        removedData = self.Settings.DotBlackList.byContentId[contentid]
+        if removedData and removedData.name == name then
+            self.Settings.DotBlackList.byContentId[contentid] = nil
+        else
+            removedData = nil  -- 不匹配，不删除
+        end
+    else
+        -- contentid == -1 时，从byName中删除
+        removedData = self.Settings.DotBlackList.byName[name]
+        if removedData and removedData.contentid == -1 then
+            self.Settings.DotBlackList.byName[name] = nil
+        else
+            removedData = nil  -- 不匹配，不删除
+        end
+    end
+    
+    -- 从list中移除
+    if removedData then
+        for i, v in ipairs(self.Settings.DotBlackList.list) do
+            if v == removedData then
+                table.remove(self.Settings.DotBlackList.list, i)
+                break
+            end
+        end
+        return true
+	else
+		for i, v in ipairs(self.Settings.DotBlackList.list) do
+            if v.contentid == contentid and v.name == name then
+                table.remove(self.Settings.DotBlackList.list, i)
+                break
+            end
+        end
+        return true
+    end
+end
+
+local function center_string(str, length)  --把字符串居中对其
+    local len = #str
+    if len >= length then
+        return str
+    end
+    local total_spaces = length - len
+    local left_spaces = math.floor(total_spaces / 2)
+    local right_spaces = total_spaces - left_spaces
+    return string.rep(" ", left_spaces) .. str .. string.rep(" ", right_spaces)
+end
+
+local function NotInBlackList(name, contentid, hp)
+	local inList, HP = MatchDotBlackList(name, contentid)
+	if inList and hp <= HP then
+		return false
+	else
+		return true
+	end
+end
+-------------------------------------------------------用户变量本地存储优化性能
 local player = nil
 local playerid = nil
 local incombat = nil
@@ -1315,6 +1467,27 @@ function self.AutoUmbralSoulOff()
 	self.Skills[-1].inHotbarList = false
 end
 -----------------------------------------------------------------------------------------
+local function MOTargetSet()  --mo目标设置
+	local allys = TensorCore.getEntityGroupList("Party")
+	local pos = GetMouseInWorldPos()
+	local minDistSq = math.huge
+	local nearestTarget = nil
+	if allys then
+		for _, v in pairs(allys) do
+			local dx = v.pos.x - pos.x
+			local dy = v.pos.y - pos.y
+			local dz = v.pos.z - pos.z
+			local distSq = dx*dx + dy*dy + dz*dz
+			if distSq < minDistSq then
+				minDistSq = distSq
+				nearestTarget = v
+			end
+		end
+		return nearestTarget
+	end
+	return false
+end
+
 local function SlideFast()  --滑板鞋
 	if self.Settings.SlideFast and not self.Skills[-2].inHotbarList then
 		if player.castinginfo.channelingid ~= 0 then
@@ -1401,7 +1574,146 @@ local function SoulDrift()  --灵魂漂移
 		end
 	end
 end
+
+local function TPAetherial()  --瞬移以太步
+	if self.Settings.Between_the_Aetherial then
+		--魔纹步瞬移
+		if lastcast == Mo_Wen.id and LeyLinesPos == nil then
+			LeyLinesPos = player.pos
+		end
+		if LeyLinesPos and TensorCore.hasBuff(player, 737) then
+			drawer:addCircle(LeyLinesPos.x, LeyLinesPos.y, LeyLinesPos.z, 0.04, true)
+		elseif not TensorCore.hasBuff(player, 737) then
+			LeyLinesPos = nil
+		end
+		if HotbarSkills:peek() == Mo_Wen_Bu.id and player.castinginfo.channelingid ~= 0 and LeyLinesPos then
+			self.CancelHotbarSkill(Mo_Wen_Bu.id)
+			Hacks:TeleportToXYZ(LeyLinesPos.x,LeyLinesPos.y,LeyLinesPos.z,true)
+		end
+		if HotbarSkills:peek() == Yi_Tai.id and player.castinginfo.channelingid ~= 0 and MOTargetSet() then
+			self.CancelHotbarSkill(Yi_Tai.id)
+			Hacks:TeleportToXYZ(MOTargetSet().pos.x,MOTargetSet().pos.y,MOTargetSet().pos.z,true)
+		end
+
+	end
+end
 -----------------------------------------------------------------------------------------
+local function UpgradeSkill(id) --自动替换为升级技能
+	if level == nil then
+		return id
+	end
+	--悖论 - 火1 -冰1
+	if id == Fire_1.id or id == Ice_1.id or id == Bei_Lun.id then
+		if Bei_Lun.highlighted == 1 then
+			return Bei_Lun.id
+		else
+			if id == Bei_Lun.id then
+				if fire_ice >= 0 then
+					return Fire_1.id
+				else
+					return Ice_1.id
+				end
+			else
+				return id
+			end
+		end
+	end
+	--dot
+	if id == DOT_1.id or id == DOT_2.id or id == DOT_3.id then
+		if level >= 92 then
+			return DOT_3.id
+		elseif level >= 45 then
+			return DOT_2.id
+		elseif level >=6 then
+			return DOT_1.id
+		end
+	end
+	--aoe dot
+	if id == DOT_AOE_1.id or id == DOT_AOE_2.id or id == DOT_AOE_3.id then
+		if level >= 92 then
+			return DOT_AOE_3.id
+		elseif level >= 64 then
+			return DOT_AOE_2.id
+		elseif level >= 26 then
+			return DOT_AOE_1.id
+		end
+	end
+	--fireaoe
+	if id == Fire_2.id or id == Fire_5.id then
+		if level >= 82 then
+			return Fire_5.id
+		elseif level >= 18 then
+			return Fire_2.id
+		end
+	end
+	--iceaoe
+	if id == Ice_2.id or id == Ice_5.id then
+		if level >= 82 then
+			return Ice_5.id
+		elseif level >= 12 then
+			return Ice_2.id
+		end
+	end
+	--黑魔纹
+	if id == Mo_Wen.id or id == Mo_Wen_Reset.id then
+		if level >= 96 then
+			if TensorCore.hasBuff(player, 737) then
+				return Mo_Wen_Reset.id
+			else
+				return Mo_Wen.id
+			end
+		elseif level >= 52 then
+			return Mo_Wen.id
+		end
+	end
+	--lb
+	if id == LB1.id or id == LB2.id or id ==LB3.id or id == -3 then
+		if TensorCore.getLBGauge() >= 30000 then
+			return LB3.id
+		elseif TensorCore.getLBGauge() >= 20000 then
+			return LB2.id
+		elseif TensorCore.getLBGauge() >= 10000 then
+			return LB1.id
+		end
+	end
+	return id
+end
+
+local function DemotionSkill(id)  --将技能降级为基本id
+	if level == nil then
+		return id
+	end
+	--悖论 - 火1 -冰1
+	if id == Bei_Lun.id then
+		return Fire_1.id
+	end
+	--dot
+	if id == DOT_2.id or id == DOT_3.id then
+		return DOT_1.id
+	end
+	--aoe dot
+	if id == DOT_AOE_2.id or id == DOT_AOE_3.id then
+		return DOT_AOE_1.id
+	end
+	--fireaoe
+	if id == Fire_5.id then
+		return Fire_2.id
+	end
+	--iceaoe
+	if id == Ice_5.id then
+		return Ice_2.id
+	end
+	--黑魔纹
+	if id == Mo_Wen_Reset.id then
+		return Mo_Wen.id
+	end
+	--lb
+	if id == LB1.id or id == LB2.id or id ==LB3.id or id == -3 then
+		return -3
+	end
+	return id
+end
+------------------------------------------------------------------------------------------
 local function IsReady(action)  --检查技能能否可以进入技能队列
 	if level < action.level then  --没学会技能肯定不让用
 		return false
@@ -1522,26 +1834,7 @@ local function AutoPotion()
 	end
 end
 
-local function MOTargetSet()  --mo目标设置
-	local allys = TensorCore.getEntityGroupList("Party")
-	local pos = GetMouseInWorldPos()
-	local minDistSq = math.huge
-	local nearestTarget = nil
-	if allys then
-		for _, v in pairs(allys) do
-			local dx = v.pos.x - pos.x
-			local dy = v.pos.y - pos.y
-			local dz = v.pos.z - pos.z
-			local distSq = dx*dx + dy*dy + dz*dz
-			if distSq < minDistSq then
-				minDistSq = distSq
-				nearestTarget = v
-			end
-		end
-		return nearestTarget.id
-	end
-	return false
-end
+
 
 --这段代码是一个名为MhachBLM.Action的函数，主要功能是执行一个 "动作"(如游戏中的技能、法术等) 并指定目标。它会先验证动作和目标的有效性，检查玩家与目标的距离是否在动作的有效范围内，最后执行这个动作。
 function self.Action(action, t)
@@ -1572,12 +1865,10 @@ function self.Action(action, t)
 		if IsSkillGCD(action.id) then   --GCD技能处理
 			
 			self.DebugPrint("Casting: " .. action.name .. "Target:" .. t.name)
-			gcdTickTime = Now()
 			return action:Cast(t.id)
 			
 		else   --能力技处理
 			
-			ablTickTime = Now()
 			if ForceAbl or self.Settings.InsureOGCD then
 				ForceAbl = false
 				if action.id == 846 then
@@ -1585,10 +1876,8 @@ function self.Action(action, t)
 				else
 					self.DebugPrint("ForceCasting: " .. action.name .. " Target:" .. t.name)
 				end
-				if self.Skills[action.id].tag == "MO" then
-					if MOTargetSet() then
-						return action:Cast(MOTargetSet())
-					end
+				if self.Skills[action.id].tag == "MO" and MOTargetSet() then
+					return action:Cast(MOTargetSet().id)
 					--return SendTextCommand("/ac " .. action.name .. " <mo>")
 				elseif self.Skills[action.id].tag == "Potion" then
 					return AutoPotion()
@@ -1603,7 +1892,7 @@ function self.Action(action, t)
 					self.DebugPrint("WaveCasting: " .. action.name .. " Target:" .. t.name)
 				end
 				if self.Skills[action.id].tag == "MO" and MOTargetSet() then
-					return action:Cast(MOTargetSet())
+					return action:Cast(MOTargetSet().id)
 				elseif self.Skills[action.id].tag == "Potion" then
 					return AutoPotion()
 				else
@@ -1642,21 +1931,21 @@ local function UpdateTimer()
 	if not GCDSkills:isEmpty() then
 		if lastcast == GCDSkills:peek() and player.castinginfo.timesincecast <= 200 then
 			GCDSkills:removeAll(lastcast)
-			lastGCDTime = Now()
 		end
 	end
 	if not OGCDSkills:isEmpty() then
 		if lastcast == OGCDSkills:peek() and player.castinginfo.timesincecast <= 200 then
 			OGCDSkills:removeAll(lastcast)
-			lastABLTime = Now()
 		end
 	end
 	if not HotbarSkills:isEmpty() then
 		if lastcast == HotbarSkills:peek() and player.castinginfo.timesincecast <= 200 then
 			HotbarSkills:removeAll(lastcast)
-			self.Skills[lastcast].inHotbarList = false
-			if lastcast == LB1.id or lastcast == LB2.id or lastcast == LB3.id then
-				self.Skills[-3].inHotbarList = false
+			if lastcast == Bei_Lun.id then
+				self.Skills[Ice_1.id].inHotbarList = false
+				self.Skills[Fire_1.id].inHotbarList = false
+			else
+				self.Skills[DemotionSkill(lastcast)].inHotbarList = false
 			end
 		end
 	end
@@ -1992,7 +2281,7 @@ local function DOT_Combo()  --dot循环，已适配全等级
 			t = nil
 		end
 	end
-	if t ~= nil and not self.Settings.DotBlackList[t.contentid] then
+	if t ~= nil and NotInBlackList(t.name, t.contentid, t.hp.percent) then
 		local candot = DOT_1.highlighted == 1 or DOT_2.highlighted == 1 or DOT_3.highlighted == 1
 		if self.BLM.DOT and (not self.BLM.Burn) and candot and ((not self.BLM.AOE) or self.Target.aoe_num <= 1) then
 			if level >= 92 then
@@ -2067,7 +2356,10 @@ local function Ice_Fire()  --冰转火，已适配全等级
 			if fire_ice <= -1 and Xing_Ling:IsReady() and Bei_Lun.highlighted == 0 and ice_heart == 3 and mp == 10000 and IsReady(Xing_Ling) then
 				self.JoinACR(Xing_Ling.id)
 			end
-			if fire_ice <= -1 and ice_heart == 3 and Bei_Lun.highlighted == 0 and (Xing_Ling.cd > 0 or not TensorCore.hasBuff(player, 165)) and IsReady(Fire_3) then
+			if fire_ice <= -1 and ice_heart == 3 and Bei_Lun.highlighted == 0 and (Xing_Ling.cd > 0 or Fire_3.highlighted == 0) and IsReady(Fire_3) then
+				return self.JoinACR(Fire_3.id), target
+			end
+			if (mp >= 10000 or ice_heart == 3) and fire_ice <= -1 and ice_heart == 3 and Bei_Lun.highlighted == 0 and IsReady(Fire_3) then
 				return self.JoinACR(Fire_3.id), target
 			end
 		elseif level >= 35 then
@@ -2222,82 +2514,7 @@ local function Fix()  --打aoe后对循环进行修补
 	return false ,nil
 end
 
-local function UpgradeSkill(id) --自动替换为升级技能
-	--悖论 - 火1 -冰1
-	if id == Fire_1.id or id == Ice_1.id or id == Bei_Lun.id then
-		if Bei_Lun.highlighted == 1 then
-			return Bei_Lun.id
-		else
-			if id == Bei_Lun.id then
-				if fire_ice >= 0 then
-					return Fire_1.id
-				else
-					return Ice_1.id
-				end
-			else
-				return id
-			end
-		end
-	end
-	--dot
-	if id == DOT_1.id or id == DOT_2.id or id == DOT_3.id then
-		if level >= 92 then
-			return DOT_3.id
-		elseif level >= 45 then
-			return DOT_2.id
-		elseif level >=6 then
-			return DOT_1.id
-		end
-	end
-	--aoe dot
-	if id == DOT_AOE_1.id or id == DOT_AOE_2.id or id == DOT_AOE_3.id then
-		if level >= 92 then
-			return DOT_AOE_3.id
-		elseif level >= 64 then
-			return DOT_AOE_2.id
-		elseif level >= 26 then
-			return DOT_AOE_1.id
-		end
-	end
-	--fireaoe
-	if id == Fire_2.id or id == Fire_5.id then
-		if level >= 82 then
-			return Fire_5.id
-		elseif level >= 18 then
-			return Fire_2.id
-		end
-	end
-	--iceaoe
-	if id == Ice_2.id or id == Ice_5.id then
-		if level >= 82 then
-			return Ice_5.id
-		elseif level >= 12 then
-			return Ice_2.id
-		end
-	end
-	--黑魔纹
-	if id == Mo_Wen.id or id == Mo_Wen_Reset.id then
-		if level >= 96 then
-			if TensorCore.hasBuff(player, 737) then
-				return Mo_Wen_Reset.id
-			else
-				return Mo_Wen.id
-			end
-		elseif level >= 52 then
-			return Mo_Wen.id
-		end
-	end
-	--lb
-	if id == LB1.id or id == LB2.id or id ==LB3.id then
-		if TensorCore.getLBGauge() >= 30000 then
-			return LB3.id
-		elseif TensorCore.getLBGauge() >= 20000 then
-			return LB2.id
-		elseif TensorCore.getLBGauge() >= 10000 then
-			return LB1.id
-		end
-	end
-end
+
 
 function self.UseHotbarSkill(id, upgrade)   --使用hotbar技能
 	upgrade = upgrade or false  --是否自动替换为升级技能
@@ -2307,16 +2524,25 @@ function self.UseHotbarSkill(id, upgrade)   --使用hotbar技能
 	local skill = self.Skills[id]
 	self.DebugPrint("UseHotbarSkill:" .. skill.name)
 	if id >= 0 then  --真实技能进入技能队列
-		skill.inHotbarList = true
+		self.Skills[DemotionSkill(id)].inHotbarList = true
 		HotbarSkills:enqueueUnic(id)
 	end
 end
 
-function self.CancelHotbarSkill(id)  --取消hotbar技能
+function self.CancelHotbarSkill(id, upgrade)  --取消hotbar技能
+	upgrade = upgrade or false  --是否自动替换为升级技能
+	if upgrade then
+		id = UpgradeSkill(id)
+	end
 	local skill = self.Skills[id]
 	self.DebugPrint("CancelHotbarSkill:" .. skill.name)
 	if id >= 0 then  --真实技能进入技能队列
-		skill.inHotbarList = false
+		if id == Bei_Lun.id then
+			self.Skills[Ice_1.id].inHotbarList = false
+			self.Skills[Fire_1.id].inHotbarList = false
+		else
+			self.Skills[DemotionSkill(id)].inHotbarList = false
+		end
 		HotbarSkills:removeAll(id)
 	end
 end
@@ -2499,9 +2725,9 @@ local function JoinHotbarQueue(skill, id)
 	self.DebugPrint("HotbarSkill:" .. skill.name .. tostring(skill.inHotbarList))
 	if id >= 0 then  --真实技能进入技能队列
 		if skill.inHotbarList then
-			HotbarSkills:enqueueUnic(id)
+			self.UseHotbarSkill(id, true)
 		else
-			HotbarSkills:removeAll(id)
+			self.CancelHotbarSkill(id, true)
 		end
 	elseif id == -2 then
 		if not skill.inHotbarList then
@@ -2509,19 +2735,12 @@ local function JoinHotbarQueue(skill, id)
 		end
 	elseif id == -3 then
 		if skill.inHotbarList then
-			if TensorCore.getLBGauge() < 10000 then
-				skill.inHotbarList = false
-			elseif TensorCore.getLBGauge() < 20000 then
-				HotbarSkills:enqueueUnic(LB1.id)
-			elseif TensorCore.getLBGauge() < 30000 then
-				HotbarSkills:enqueueUnic(LB2.id)
-			elseif TensorCore.getLBGauge() >= 30000 then
-				HotbarSkills:enqueueUnic(LB3.id)
-			end
+			self.UseHotbarSkill(id, true)
 		else
 			HotbarSkills:removeAll(LB1.id)
 			HotbarSkills:removeAll(LB2.id)
 			HotbarSkills:removeAll(LB3.id)
+
 		end
 	end
 end
@@ -2540,70 +2759,69 @@ function self.Draw()
 					d("模型加载失败，请重新加载或检查文件完整性！")
 				end
             end]]
-			GUI:Text("|                  |")
+			GUI:PushStyleColor(GUI.Col_Button, 1, 0, 0, 0)
+			GUI:PushStyleColor(GUI.Col_ButtonHovered, 1, 0, 0, 0)
+			GUI:PushStyleColor(GUI.Col_ButtonActive, 1, 0, 0, 0)
+			if settingUI then
+				GUI:PushStyleColor(GUI.Col_Text, 1, 0, 0, 1)
+			end
+			GUI:Button(T["MSet"][1][Language] , 100, 20)
 			if GUI:IsItemClicked(0)  then
 				settingUI = true
 				hotbarUI = false
 				qtUI = false
-			end
-			if GUI:IsItemHovered() then
-				GUI:SetCursorPos(50,30)
-				if settingUI then
-					GUI:TextColored(1, 0, 0, 1, T["MSet"][1][Language])
-				else
-					GUI:TextDisabled(T["MSet"][1][Language])
-				end
-			elseif settingUI then
-				GUI:SetCursorPos(50,30)
-				GUI:TextColored(1, 0, 0, 1, T["MSet"][1][Language])
-			else
-				GUI:SetCursorPos(50,30)
-				GUI:Text(T["MSet"][1][Language])
+				blacklistUI = false
 			end
 			GUI:SameLine()
+			if settingUI then
+				GUI:PopStyleColor(1)
+			end
 
-			GUI:Text("                        |")
+			if hotbarUI then
+				GUI:PushStyleColor(GUI.Col_Text, 1, 0, 0, 1)
+			end
+			GUI:Button(T["HSet"][1][Language] , 100, 20)
 			if GUI:IsItemClicked(0)  then
 				settingUI = false
 				hotbarUI = true
 				qtUI = false
-			end
-			if GUI:IsItemHovered() then
-				GUI:SetCursorPos(160,30)
-				if hotbarUI then
-					GUI:TextColored(1, 0, 0, 1, T["HSet"][1][Language])
-				else
-					GUI:TextDisabled(T["HSet"][1][Language])
-				end
-			elseif hotbarUI then
-				GUI:SetCursorPos(160,30)
-				GUI:TextColored(1, 0, 0, 1, T["HSet"][1][Language])
-			else
-				GUI:SetCursorPos(160,30)
-				GUI:Text(T["HSet"][1][Language])
+				blacklistUI = false
 			end
 			GUI:SameLine()
+			if hotbarUI then
+				GUI:PopStyleColor(1)
+			end
 
-			GUI:Text("                     |")
+			if qtUI then
+				GUI:PushStyleColor(GUI.Col_Text, 1, 0, 0, 1)
+			end
+			GUI:Button(T["QSet"][1][Language] , 100, 20)
 			if GUI:IsItemClicked(0) then
 				settingUI = false
 				hotbarUI = false
 				qtUI = true
+				blacklistUI = false
 			end
-			if GUI:IsItemHovered() then
-				GUI:SetCursorPos(310,30)
-				if qtUI then
-					GUI:TextColored(1, 0, 0, 1, T["QSet"][1][Language])
-				else
-					GUI:TextDisabled(T["QSet"][1][Language])
-				end
-			elseif qtUI then
-				GUI:SetCursorPos(310,30)
-				GUI:TextColored(1, 0, 0, 1, T["QSet"][1][Language])
-			else
-				GUI:SetCursorPos(310,30)
-				GUI:Text(T["QSet"][1][Language])
+			GUI:SameLine()
+			if qtUI then
+				GUI:PopStyleColor(1)
 			end
+
+			if blacklistUI then
+				GUI:PushStyleColor(GUI.Col_Text, 1, 0, 0, 1)
+			end
+			GUI:Button(T["BSet"][1][Language] , 100, 20)
+			if GUI:IsItemClicked(0) then
+				settingUI = false
+				hotbarUI = false
+				qtUI = false
+				blacklistUI = true
+			end
+			if blacklistUI then
+				GUI:PopStyleColor(1)
+			end
+
+			GUI:PopStyleColor(3)
 			GUI:Separator()
 			--[[GUI:Button(T["MSet"][1][Language], 80, 30)
 			if GUI:IsItemClicked(0) then
@@ -2637,8 +2855,10 @@ function self.Draw()
 				GUI:Spacing()
 				local value8, changed8 = GUI:Checkbox(T["MSet"][11][Language], self.Settings.InsureOGCD)
 				GUI:Spacing()
+				GUI:PushStyleColor(GUI.Col_Text, 1, 0, 0, 1)
 				local value4, changed4 = GUI:Checkbox(T["MSet"][5][Language], self.Settings.Between_the_Aetherial)
 				GUI:Spacing()
+				GUI:PopStyleColor(1)
 				local value5, changed5 = GUI:Checkbox(T["MSet"][6][Language], self.Settings.ShowNextSkill)
 				GUI:Spacing()
 				local value6, changed6 = GUI:Checkbox(T["MSet"][7][Language], self.Settings.NewCombo)
@@ -2649,13 +2869,13 @@ function self.Draw()
 				GUI:Spacing()
 				local value10, changed10 = GUI:Checkbox(T["MSet"][13][Language], self.Settings.SoulDrift)
 				GUI:Spacing()
-				GUI:Text(T["MSet"][9][Language])
+				--[[GUI:Text(T["MSet"][9][Language])
 				GUI:SameLine()
 				local input, inputChanged = GUI:InputText("##Dot黑名单", listToString(self.Settings.DotBlackList, ","), GUI.InputTextFlags_CharsNoBlank)
 				if GUI:IsItemHovered() then
 					GUI:SetTooltip(T["MSet"][10][Language])
 				end
-				GUI:Spacing()
+				GUI:Spacing()]]
 				GUI:Text('Language:  ')
 				GUI:SameLine()
             	GUI:PushItemWidth(60)
@@ -2680,21 +2900,21 @@ function self.Draw()
 				GUI:Spacing()
 				GUI:Text('Version:  ' .. version)
 				GUI:PopItemWidth()
-				if inputChanged then
+				--[[if inputChanged then
 					if input ~= nil and input ~= '' then
                         local newStr, _ = string.gsub(input, ", ", ",")
                         local blackList = splitString(newStr, ",")
-                        self.Settings.DotBlackList = {}
+                        self.Settings.DotBlackList = {byContentId = {},byName = {},list = {}}
                         for _, id in pairs(blackList) do
 							self.Settings.DotBlackList[tonumber(id)] = true
                             --table.insert(MhachBLM.Settings.DotBlackList, tonumber(id))
                         end
 					else
-						self.Settings.DotBlackList = {}
+						self.Settings.DotBlackList = {byContentId = {},byName = {},list = {}}
                     end
 
 					SaveSettings()
-				end
+				end]]
 				if changed then
 					self.Settings.Debug = value
 					SaveSettings()
@@ -2750,7 +2970,6 @@ function self.Draw()
 					end
 					SaveSettings()
 				end
-				GUI:End()
 			end
 
 			if hotbarUI then   --热键栏设置界面
@@ -2763,70 +2982,62 @@ function self.Draw()
 				GUI:Spacing()
 				for _, id in ipairs(sortedIds) do
     				local skill = self.Skills[id]
-					local str = nil
-    				GUI:Image(skill.iconPath, 38, 38)
-					GUI:SameLine()
-					--GUI:BeginChild("##HotBarSettings"..tostring(id), 200, 38, false, GUI.WindowFlags_NoSavedSettings + GUI.WindowFlags_NoTitleBar + GUI.WindowFlags_NoScrollbar + GUI.WindowFlags_NoScrollWithMouse)
-					if not skill.keyBinding then
-						str = AdjustKeyName(skill)
-						GUI:Button(str, 200, 38)
-						if GUI:IsItemClicked(0) then
-							skill.keyBinding = true
+					if skill.bar then
+						local str = nil
+						if id > 0 then
+							GUI:Image(Icons .. UpgradeSkill(id) .. ".png", 38, 38)
+						else
+							GUI:Image(skill.iconPath, 38, 38)
 						end
-					else
-						str = T["HSet"][3][Language]
-						---------------------------绑定按键
-						local pressed = false
-						skill.keyBind, skill.keyName, skill.keyC, skill.keyA, skill.keyS, pressed = IsKeyDown()
-						if pressed then
-							skill.keyBinding = false
+						
+						GUI:SameLine()
+						--GUI:BeginChild("##HotBarSettings"..tostring(id), 200, 38, false, GUI.WindowFlags_NoSavedSettings + GUI.WindowFlags_NoTitleBar + GUI.WindowFlags_NoScrollbar + GUI.WindowFlags_NoScrollWithMouse)
+						if not skill.keyBinding then
 							str = AdjustKeyName(skill)
+							GUI:Button(str, 200, 38)
+							if GUI:IsItemClicked(0) then
+								skill.keyBinding = true
+							end
+						else
+							str = T["HSet"][3][Language]
+							---------------------------绑定按键
+							local pressed = false
+							skill.keyBind, skill.keyName, skill.keyC, skill.keyA, skill.keyS, pressed = IsKeyDown()
+							if pressed then
+								skill.keyBinding = false
+								str = AdjustKeyName(skill)
+								SaveHotBar()
+							end
+							GUI:Button(str, 200, 38)
+							if GUI:IsItemClicked(0) then
+								skill.keyBinding = false
+							end
+						end
+						if GUI:IsItemClicked(1) then
+							skill.keyBind, skill.keyName, skill.keyC, skill.keyA, skill.keyS = -1, "None", false, false, false
 							SaveHotBar()
 						end
-						GUI:Button(str, 200, 38)
-						if GUI:IsItemClicked(0) then
-							skill.keyBinding = false
+						if GUI:IsItemHovered() then
+							GUI:SetTooltip(T["HSet"][4][Language])
 						end
+						GUI:SameLine()
+						skill.showHotbar, skill.changed = GUI:Checkbox(skill.name .. "##" .. id, skill.showHotbar)
+						if skill.changed then
+							SaveHotBar()
+						end
+						if GUI:IsItemHovered() then
+							GUI:SetTooltip(T["HSet"][5][Language])
+						end
+						GUI:Spacing()
 					end
-					if GUI:IsItemClicked(1) then
-						skill.keyBind, skill.keyName, skill.keyC, skill.keyA, skill.keyS = -1, "None", false, false, false
-						SaveHotBar()
-					end
-					if GUI:IsItemHovered() then
-						GUI:SetTooltip(T["HSet"][4][Language])
-					end
-					GUI:SameLine()
-					--[[if skill.showHotbar then
-						GUI:Image(Icons .. "enable.png", 38, 38)
-					else
-						GUI:Image(Icons .. "disable.png", 38, 38)
-					end
-					if GUI:IsItemClicked(0) then
-						skill.showHotbar = not skill.showHotbar
-					end
-					if GUI:IsItemHovered() then
-						GUI:SetTooltip("Left Click to Enable/Disable.")
-					end
-					GUI:SameLine()
-					GUI:Text(skill.name)]]
-					skill.showHotbar, skill.changed = GUI:Checkbox(skill.name .. "##" .. id, skill.showHotbar)
-					if skill.changed then
-						SaveHotBar()
-					end
-					if GUI:IsItemHovered() then
-						GUI:SetTooltip(T["HSet"][5][Language])
-					end
-					GUI:Spacing()
-					--GUI:EndChild()
 				end
-				GUI:End()
 			end
 
 			if qtUI then
 				GUI:Spacing()
 				GUI:Text(T["QSet"][2][Language])
 				GUI:SameLine()
-				GUI:Button("-", 16, 16)
+				GUI:ArrowButton("-",GUI .Dir_Left)
 				if GUI:IsItemClicked(0) then
 					buttonsPerRow = buttonsPerRow - 1
 					SaveQt()
@@ -2834,7 +3045,7 @@ function self.Draw()
 				GUI:SameLine()
 				GUI:Text(" " .. buttonsPerRow .. " ")
 				GUI:SameLine()
-				GUI:Button("+", 16, 16)
+				GUI:ArrowButton("+",GUI .Dir_Right)
 				if GUI:IsItemClicked(0) then
 					buttonsPerRow = buttonsPerRow + 1
 					SaveQt()
@@ -2882,9 +3093,70 @@ function self.Draw()
 						GUI:SetTooltip(T["HSet"][5][Language])
 					end
 				end
-				GUI:End()
+			end
+
+			if blacklistUI then
+				GUI:Text(center_string(T["BSet"][2][Language], 26))----------------------------------------------------------------------------------------------------------------------
+				GUI:SameLine()
+				GUI:Text(center_string(T["BSet"][3][Language], 18))
+				GUI:SameLine()
+				GUI:Text(center_string(T["BSet"][4][Language], 12))
+				GUI:PushItemWidth(150)
+				local inputName, nameChanged = GUI:InputText("##Dot黑名单name", tempStr[1], GUI.InputTextFlags_AutoSelectAll)
+				GUI:SameLine()
+				local inputcid, cidChanged = GUI:InputText("##Dot黑名单cid", tempStr[2], GUI.InputTextFlags_CharsNoBlank + GUI.InputTextFlags_AutoSelectAll)
+				GUI:SameLine()
+				GUI:PopItemWidth()
+				GUI:PushItemWidth(70)
+				local inputhp, hpChanged = GUI:InputText("##Dot黑名单hp", tempStr[3], GUI.InputTextFlags_CharsNoBlank + GUI.InputTextFlags_AutoSelectAll)
+				GUI:SameLine()
+				GUI:PopItemWidth()
+				GUI:Button(T["BSet"][5][Language], 20, 20)
+				if GUI:IsItemClicked(0) then
+					if (tempStr[1] and tempStr[1] ~= "") or tonumber(tempStr[2]) or tonumber(tempStr[3]) then
+						AddDotBlackList(tempStr[1], tonumber(tempStr[2]), tonumber(tempStr[3]))
+					end
+					tempStr[1] = ""
+					tempStr[2] = ""
+					tempStr[3] = ""
+					SaveDot()
+				end
+
+				if nameChanged then
+					tempStr[1] = inputName or ""
+				elseif cidChanged then
+					tempStr[2] = inputcid or ""
+				elseif hpChanged then
+					tempStr[3] = inputhp or ""
+				end
+				GUI:Separator()
+				if self.Settings.DotBlackList.list ~= nil then
+					for _, data in ipairs(self.Settings.DotBlackList.list) do
+						GUI:Dummy(50, 20)
+						GUI:SameLine()
+						GUI:Text(center_string(data.name, 10))
+						GUI:SameLine()
+						GUI:Dummy(50, 20)
+						GUI:SameLine()
+						GUI:Text(center_string(tostring(data.contentid), 10))
+						GUI:SameLine()
+						GUI:Dummy(50, 20)
+						GUI:SameLine()
+						GUI:Text(center_string(tostring(data.hp), 10))
+						GUI:SameLine()
+						GUI:Dummy(50, 20)
+						GUI:SameLine()
+						GUI:Button(T["BSet"][6][Language], 20, 20)
+						if GUI:IsItemClicked(0) then
+							RemoveDotBlackList(data.name, data.contentid)
+							SaveDot()
+						end
+						GUI:Separator()
+					end
+				end
 			end
         end
+		GUI:End()
 	end
     if self ~= nil and self.BLMGUI ~= nil then
 		GUI:PushStyleColor(GUI.Col_WindowBg, 1, 1, 1, 0)
@@ -3043,8 +3315,11 @@ function self.Draw()
 					if skill.showHotbar then
 						if index < arr then
 							GUI:SetCursorPos(X,Y)
-							GUI:Image(skill.iconPath, 43, 43)
-
+							if id > 0 then
+								GUI:Image(Icons .. UpgradeSkill(id) .. ".png", 43, 43)
+							else
+								GUI:Image(skill.iconPath, 43, 43)
+							end
 							index = index + 1
 							X = X + 48
 						else
@@ -3053,8 +3328,11 @@ function self.Draw()
 							index = 0
 							X = 5
 							GUI:SetCursorPos(X,Y)
-							GUI:Image(skill.iconPath, 43, 43)
-
+							if id > 0 then
+							GUI:Image(Icons .. UpgradeSkill(id) .. ".png", 43, 43)
+							else
+								GUI:Image(skill.iconPath, 43, 43)
+							end
 						end
 
 						if GUI:IsItemClicked(0) then   --横向+53,纵向+49
@@ -3119,6 +3397,7 @@ function self.OnLoad()
 	LoadSettings()
 	LoadHotBar()
 	LoadQt()
+	LoadDot()
 	--[[MhachBLMRotation = FileLoad(Module)
 	if MhachBLMRotation ~= nil then
 		d(type(MhachBLMRotation))
@@ -3137,6 +3416,7 @@ function self.OnUpdate(event, tickcount)
 		AutoUmbralSoul()
 		SlideFast()
 		SoulDrift()
+		TPAetherial()
 	end
 end
 
