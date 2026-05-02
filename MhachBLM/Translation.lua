@@ -98,9 +98,9 @@ local tbl =
     {
         [1] =
         {
-            ["CN"] = "主设置",
+            ["CN"] = "   主设置   ",
             ["EN"] = "MainSetting",
-            ["JP"] = "主設定",
+            ["JP"] = "   主設定   ",
         },
         [2] =
         {
@@ -122,9 +122,9 @@ local tbl =
         },
         [5] =
         {
-            ["CN"] = "魔纹步替补以太步",
-            ["EN"] = "Between the Lines Switch to Aetherial Manipulation",
-            ["JP"] = "ラインズステップ to エーテリアルステップ",
+            ["CN"] = "瞬移以太步和魔纹步(读条时生效) 风险自负",
+            ["EN"] = "TP Aetherial Manipulation and Between the Lines(effective while channeling) Risk at your own expense",
+            ["JP"] = "瞬間移動エーテリアルステップ ラインズステップ(詠唱中に有効) 自己責任",
         },
         [6] =
         {
@@ -180,7 +180,7 @@ local tbl =
     {
         [1] =
         {
-            ["CN"] = "HotBar设置",
+            ["CN"] = "  HotBar设置  ",
             ["EN"] = "HotBarSetting",
             ["JP"] = "ホットバー設定",
         },
@@ -221,9 +221,9 @@ local tbl =
 
         [1] =
         {
-            ["CN"] = "Qt设置",
+            ["CN"] = "  Qt设置 ",
             ["EN"] = "QtSetting",
-            ["JP"] = "Qt設定",
+            ["JP"] = "  Qt設定 ",
         },
         [2] =
         {
@@ -236,6 +236,46 @@ local tbl =
             ["CN"] = "显示",
             ["EN"] = "Display",
             ["JP"] = "表示する",
+        },
+    },
+
+    ["BSet"] =
+    {
+        [1] =
+        {
+            ["CN"] = "  Dot设置  ",
+            ["EN"] = "DotSettings",
+            ["JP"] = "  Dot設定  ",
+        },
+        [2] =
+        {
+            ["CN"] = "名称",
+            ["EN"] = "Name",
+            ["JP"] = "名前",
+        },
+        [3] =
+        {
+            ["CN"] = "ContentID",
+            ["EN"] = "ContentID",
+            ["JP"] = "ContentID",
+        },
+        [4] =
+        {
+            ["CN"] = "HP%",
+            ["EN"] = "HP%",
+            ["JP"] = "HP%",
+        },
+        [5] =
+        {
+            ["CN"] = "+",
+            ["EN"] = "+",
+            ["JP"] = "+",
+        },
+        [6] =
+        {
+            ["CN"] = "×",
+            ["EN"] = "×",
+            ["JP"] = "×",
         },
     },
 }
