@@ -1464,7 +1464,7 @@ local function UpdateFile()
         handle:close()
         return result
     end
-
+	
     -- 下载文件
     local function downloadFile(url, destination)
         self.DebugPrint2("Downloading...", nil, 3)
@@ -1542,8 +1542,8 @@ local function UpdateFile()
     end
     if copyFiles(exPath, replacePath) then
 		self.DebugPrint2("Update Successs!Now Reload!", nil, 3)
-		if FolderExists(ModulePath .. [[Temp\Download]]) then
-			FolderDelete(ModulePath .. [[Temp\Download]])
+		if FolderExists(tempPath) then
+			FolderDelete(tempPath)
 		end
 		return true
 	end
