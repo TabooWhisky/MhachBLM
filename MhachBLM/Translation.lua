@@ -188,9 +188,9 @@ local tbl =
         },
         [16] =
         {
-            ["CN"] = "点击重载以应用更新",
-            ["EN"] = "Click reload to apply updates",
-            ["JP"] = "アプリをクリック更新",
+            ["CN"] = "启用自动更新",
+            ["EN"] = "Enable automatic updates",
+            ["JP"] = "自動更新を有効にする",
         },
     },
 
