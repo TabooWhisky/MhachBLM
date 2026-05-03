@@ -779,7 +779,7 @@ local speed_F = 6
 local speed_S = 2.4000000953674
 local speed_W = 2.4000000953674
 
-local version = "1.98"
+local version = "1.99"
 local vlog = "W0NOXVsxLkhvdGJhcuaYvuekuuaKgOiDveWQjeWtlwoyLuiHquWKqOeBteaegemtguS8mOWMlgozLua3u+WKoOiHquWKqOabtOaWsAo0LuS8mOWMluaVsOaNrue7k+aehF0KW0VOXVsxLiBIb3RiYXIgZGlzcGxheXMgc2tpbGwgbmFtZXMKMi4gQXV0b21hdGljIExpbmcgSmkgU291bCBvcHRpbWl6YXRpb24KMy4gQWRkIGF1dG8tdXBkYXRlCjQuIE9wdGltaXplIGRhdGEgc3RydWN0dXJlXQpbSlBdWzEu44Ob44OD44OI44OQ44O844Gr44K544Kt44Or5ZCN44KS6KGo56S6CjIu6Ieq5YuV6ZyK5qW16a2C44Gu5pyA6YGp5YyWCjMu6Ieq5YuV5pu05paw44KS6L+95YqgCjQu44OH44O844K/5qeL6YCg44KS5pyA6YGp5YyWXQ=="
 local needReload = false
 local needUpdate = false
