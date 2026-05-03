@@ -189,12 +189,25 @@ self.CurrentDPSTarget = 0
 self.HasDPSTarget = false
 
 
-function self.DebugPrint(...)
+function self.DebugPrint(str)  --打印到mini控制台
     if self.Settings.Debug then
-        d("[MhachBLM] " .. ...)
+        d("[MhachBLM] " .. str)
     end
 end
 
+---输出彩色文字
+---@param str string 文字
+---@param color string {color:0,255,0}
+---@param se number 提示音数字
+function self.DebugPrint2(str, color, se)  --打印到游戏对话框
+	color = color or "{color:0,255,255}"
+	se = se or 0
+	if se > 0  and se <= 16 then
+		TensorCore.sendParsedChatMessage("/e {color:0,255,255}{resetcolor}" .. color .. str .. "<se." .. se .. ">" .. "{resetcolor}")
+	else
+		TensorCore.sendParsedChatMessage("/e {color:0,255,255}{resetcolor}" .. color .. str .. "{resetcolor}")
+	end
+end
 
 function self.GetSkill(SkillID)
     if not SkillID then
@@ -623,7 +636,93 @@ function Queue:printQueue()
     end
     print(table.concat(elements, " "))
 end
-----------------------------------------------------------------------------------------------------------------
+---------------
+-- Base64 字符集
+local b64chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+local b64map = {}
+for i = 1, #b64chars do
+    b64map[b64chars:sub(i, i)] = i - 1
+end
+
+-- 将字符串编码为 Base64
+local function stringToBase64(str)
+    local result = {}
+    local n = #str
+    local i = 1
+
+    while i <= n do
+        local b1, b2, b3 = str:byte(i, i + 2)
+        local triple = (b1 or 0) * 65536 + (b2 or 0) * 256 + (b3 or 0)
+        
+        local c1 = (triple >> 18) & 63
+        local c2 = (triple >> 12) & 63
+        local c3 = (triple >> 6) & 63
+        local c4 = triple & 63
+
+        if i + 1 > n then
+            c3, c4 = 64, 64  -- 填充 '='
+        elseif i + 2 > n then
+            c4 = 64
+        end
+
+        table.insert(result, b64chars:sub(c1 + 1, c1 + 1))
+        table.insert(result, b64chars:sub(c2 + 1, c2 + 1))
+        table.insert(result, c3 == 64 and '=' or b64chars:sub(c3 + 1, c3 + 1))
+        table.insert(result, c4 == 64 and '=' or b64chars:sub(c4 + 1, c4 + 1))
+
+        i = i + 3
+    end
+
+    return table.concat(result)
+end
+
+-- 将 Base64 解码为字符串（自动忽略换行、空格等非 Base64 字符）
+local function base64ToString(b64)
+    local result = {}
+    local buffer = 0
+    local bits = 0
+
+    for i = 1, #b64 do
+        local ch = b64:sub(i, i)
+        if b64map[ch] then
+            buffer = (buffer << 6) | b64map[ch]
+            bits = bits + 6
+            if bits >= 8 then
+                bits = bits - 8
+                local byte = (buffer >> bits) & 255
+                table.insert(result, string.char(byte))
+                buffer = buffer & ((1 << bits) - 1)
+            end
+        end
+        -- 忽略换行、空格等字符
+    end
+
+    return table.concat(result)
+end
+
+local function extractByLanguage(str, lang) -- 根据语言提取对应内容并移除方括号
+	  -- 验证语言参数
+    local valid_langs = {["CN"] = true, ["EN"] = true, ["JP"] = true}
+    if not valid_langs[lang] then
+        return nil, "Unsupported language code"
+    end
+    
+    -- 构建语言标记模式
+    local pattern = "%[" .. lang .. "%](%[.-%])"
+    
+    -- 查找匹配内容
+    local content = str:match(pattern)
+    if not content then
+        return nil, "Language section not found"
+    end
+    
+    -- 移除所有方括号
+    content = content:gsub("%[", ""):gsub("%]", "")
+    
+    return content
+end
+
+----------------------------------------------------------------------------------------------------
 
 --local ParadoxGauge = {[3] = true, [7] = true, [11] = true, [15] = true, [19] = true, [23] = true, [27] = true}  --悖论量谱快速鉴定
 local DotBuffs = {[161] = true, [162] = true, [163] = true, [1210] = true, [3871] = true, [3872] = true }
@@ -654,6 +753,7 @@ local DotSettings = ModulePath .. [[DotSettings.lua]]
 local defultIcon = Icons .. "disable.png"
 local MhachBLMTest = {}
 local T = {}
+local MainRotationList = {}
 local Language = "CN"
 local LanguageList = {"CN","EN","JP"}
 local languageIndex = 1
@@ -677,11 +777,16 @@ local speed_B = 2.4000000953674
 local speed_F = 6
 local speed_S = 2.4000000953674
 local speed_W = 2.4000000953674
+
 local version = "1.98B"
+local vlog = "W0NOXVsxLkhvdGJhcuaYvuekuuaKgOiDveWQjeWtlwoyLuiHquWKqOeBteaegemtguS8mOWMlgozLua3u+WKoOiHquWKqOabtOaWsAo0LuS8mOWMluaVsOaNrue7k+aehF0KW0VOXVsxLiBIb3RiYXIgZGlzcGxheXMgc2tpbGwgbmFtZXMKMi4gQXV0b21hdGljIExpbmcgSmkgU291bCBvcHRpbWl6YXRpb24KMy4gQWRkIGF1dG8tdXBkYXRlCjQuIE9wdGltaXplIGRhdGEgc3RydWN0dXJlXQpbSlBdWzEu44Ob44OD44OI44OQ44O844Gr44K544Kt44Or5ZCN44KS6KGo56S6CjIu6Ieq5YuV6ZyK5qW16a2C44Gu5pyA6YGp5YyWCjMu6Ieq5YuV5pu05paw44KS6L+95YqgCjQu44OH44O844K/5qeL6YCg44KS5pyA6YGp5YyWXQ=="
+local needReload = false
+local needUpdate = false
+
 local queueUnlock = {true, true, true, true ,true}
 local tempStr = {"", "", ""}  --给dot黑名单用的
 local LeyLinesPos = nil
---------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------保存设置相关
 
 local function getLanguageIndex(str, list)
 	for i, value in ipairs(list) do
@@ -865,6 +970,17 @@ local function LoadDot()
 			self.Settings.DotBlackList = {byContentId = {},byName = {},list = {}}
 		else
 			self.Settings.DotBlackList = tbl
+		end
+	end
+end
+
+local function LoadRotation()
+	local tbl = FileLoad(Rotation)
+	if tbl ~= nil then
+		for i, v in ipairs(tbl) do
+			local fuc = base64ToString(tbl.Function[i])
+			local name = base64ToString(tbl.Name[i])
+			MainRotationList[i] = loadstring(fuc, name)()
 		end
 	end
 end
@@ -1261,6 +1377,189 @@ local function NotInBlackList(name, contentid, hp)
 		return true
 	end
 end
+---------------------------------------------------------------------------------------
+---比较版本大小
+---@param version1 string 最新版本
+---@param version2 string 被比较的版本
+---@return boolean 是否需要更新
+local function VersionCompare(version1, version2)
+	-- 移除开头的 'v' 或 'V'
+    local v1 = version1:gsub("^[vV]", "")
+    local v2 = version2:gsub("^[vV]", "")
+
+    -- 提取数字部分和字母后缀
+    local num1, suffix1 = v1:match("([%d%.]+)(%a*)")
+    local num2, suffix2 = v2:match("([%d%.]+)(%a*)")
+
+    -- 将数字部分按点分割成数字列表
+    local parts1 = {}
+    for num in num1:gmatch("%d+") do
+        table.insert(parts1, tonumber(num))
+    end
+    local parts2 = {}
+    for num in num2:gmatch("%d+") do
+        table.insert(parts2, tonumber(num))
+    end
+
+    -- 逐段比较数字部分
+    local len = math.max(#parts1, #parts2)
+    for i = 1, len do
+        local p1 = parts1[i] or 0
+        local p2 = parts2[i] or 0
+        if p1 > p2 then
+            return false
+        elseif p1 < p2 then
+            return true
+        end
+    end
+
+    -- 数字部分相同，比较字母后缀
+    -- 空后缀最小，有后缀的更大
+    if suffix1 == "" and suffix2 ~= "" then
+        return true
+    elseif suffix1 ~= "" and suffix2 == "" then
+        return false
+    else
+        -- 两个都有后缀或都为空
+        if suffix1 >= suffix2 then
+            return false
+        else
+            return true
+        end
+    end
+end
+
+
+---检查更新
+---@return number -1表示网络错误，0表示不用更新，1表示需要更新
+local function CheckUpdate()  --检查更新
+	local cmd = [[powershell -Command "[Console]::OutputEncoding = [System.Text.Encoding]::UTF8; [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12, [Net.SecurityProtocolType]::Tls11; $json = (Invoke-WebRequest -Uri 'https://api.github.com/repos/TabooWhisky/MhachBLM/releases' -UseBasicParsing | ConvertFrom-Json); $json[0].name"]]
+	local handle = io.popen(cmd)
+	if handle then
+		local result = handle:read("*a")
+		handle:close()
+		result = result:gsub("%s+$", "")
+		-- 使用result
+		if result ~= nil and result ~= "" then
+			if VersionCompare(result, version) then
+				self.DebugPrint2("Latest version:" .. result, nil, 3)
+				needUpdate = true
+				return 1
+			else
+				self.DebugPrint2("No updates available", nil, 5)
+				needUpdate = false
+				return 0
+			end
+		else
+			self.DebugPrint2("Failed to connect to GitHub!", "{color:255,0,0}", 11)
+			needUpdate = false
+			return -1
+		end
+	else
+		self.DebugPrint2("Your computer needs to support PowerShell!", "{color:255,0,0}", 11)
+		needUpdate = false
+		return -1
+	end
+end
+
+---更新文件
+---@return boolean 返回是否更新成功
+local function UpdateFile()
+	local gitZipUrl = "https://github.com/TabooWhisky/MhachBLM/archive/refs/heads/main.zip"
+    local tempPath = ModulePath .. [[Temp\Download\]]
+    local replacePath = LuaPath .. [[ACR\CombatRoutines\]]
+    local zipFilePath = tempPath .. [[MhachBLM-main.zip]]
+    local extractPath = tempPath .. [[Extracted]]
+	local exPath = tempPath .. [[Extracted\MhachBLM-main]]
+	 -- 执行系统命令的函数
+    local function runCommand(cmd)
+        local handle = io.popen(cmd)
+        local result = handle:read("*a")
+        handle:close()
+        return result
+    end
+
+    -- 下载文件
+    local function downloadFile(url, destination)
+        self.DebugPrint2("Downloading...", nil, 3)
+        local cmd = 'curl -L -o "' .. destination .. '" "' .. url .. '"'
+        runCommand(cmd)
+		self.DebugPrint2("Download to " .. destination, nil, 3)
+    end
+    -- 清理并创建临时目录
+    FolderDelete(tempPath)
+    FolderCreate(tempPath)
+
+    -- 下载 Zip 文件
+    downloadFile(gitZipUrl, zipFilePath)
+
+    -- 检查下载是否成功
+    if not io.open(zipFilePath) then
+		self.DebugPrint2("Download Failed!!!", "{color:255,0,0}", 11)
+        return false
+    end
+
+    -- 解压 Zip 文件
+    runCommand('powershell -Command "Expand-Archive -Path \'' .. zipFilePath .. '\' -DestinationPath \'' .. extractPath .. '\'"')
+	self.DebugPrint2("Updating...", nil, 3)
+
+    local excludeFiles = {  --排除在外的文件名
+        ".gitignore",
+        "README.md"
+    }
+    -- 检查文件名是否需要排除
+    local function isExcluded(fileName)
+        for _, excluded in ipairs(excludeFiles) do
+            if fileName == excluded then
+                return true
+            end
+        end
+        return false
+    end
+
+    local function copyFiles(srcFolder, destFolder)
+        -- 列出源文件夹中的所有文件和子文件夹
+        local filesInSrc = FolderList(srcFolder, [[.*]], true)
+        -- 遍历文件列表
+        for _, fileName in ipairs(filesInSrc) do
+            -- 如果当前文件需要排除，则跳过
+            if not isExcluded(fileName) then
+                -- 获取源文件的完整路径
+                local srcFile = srcFolder .. "\\" .. fileName
+                local destFile = destFolder .. "\\" .. fileName
+                -- 如果是文件夹
+                if FolderExists(srcFile) then
+                    -- 如果目标文件夹不存在，创建它
+                    if not FolderExists(destFile) then
+                        FolderCreate(destFile)
+                    end
+                    -- 递归复制该子文件夹中的内容
+                    copyFiles(srcFile, destFile)  -- 递归调用
+                    -- 如果是文件
+                elseif FileExists(srcFile) then
+                    -- 确保目标文件夹存在
+                    local destFolderPath = string.match(destFile, "^(.*[\\/])")  -- 获取文件夹路径
+                    if not FolderExists(destFolderPath) then
+                        FolderCreate(destFolderPath)
+                    end
+                    -- 如果目标文件存在，比较文件内容
+                    if FileExists(destFile) then
+						self.DebugPrint(destFile)
+                    else
+						self.DebugPrint(destFile)
+                    end
+                    runCommand("copy /Y " .. srcFile .. " " .. destFile)
+                end
+            end
+        end
+		return true
+    end
+    if copyFiles(exPath, replacePath) then
+		self.DebugPrint2("Update Successs!", nil, 3)
+		return true
+	end
+	return false
+end
 -------------------------------------------------------用户变量本地存储优化性能
 local player = nil
 local playerid = nil
@@ -1453,7 +1752,7 @@ local function AutoUmbralSoul()  --自动灵极魂
 			SendTextCommand("/ac " .. Xing_Ling.name)
 		elseif fire_ice <= -1 and (mp < 10000 or (level >= 58 and ice_heart < 3)) and Ling_Ji_Hun.cd == 0 then
 			SendTextCommand("/ac " .. Ling_Ji_Hun.name)
-		elseif (mp >= 10000 and level < 58) or (mp >= 10000 and level >=58 and ice_heart >= 3) then
+		elseif ((mp >= 10000 and level < 58) or (mp >= 10000 and level >=58 and ice_heart >= 3)) and fire_ice == -3 then
 			self.Skills[-1].inHotbarList = false
 		end
 	end
@@ -2044,27 +2343,6 @@ function self.TargetSet(tag)  --目标设置器
 	else
 		self.Target.aoe_num = 0
 	end
-
-	--[[if tag == "DOT" then
-		local t = nil
-		if self.BLM.Smart_Target then  --智能目标
-			return FindDotTarget(enemys)
-		else
-			t = TensorCore.mGetTarget()
-			if MissinMhachBLMyBuff(t, DotBuffs) then
-				return TensorCore.mGetTarget()
-			end
-		end
-	end
-
-	if (tag == "AOE" or tag == "AOEDOT") and self.Target.aoe_num >= 2 and self.BLM.Smart_Target and self.BLM.AOE then
-		local t = nil
-		if enemys then
-			t, self.Target.aoe_num = FindMaxTargetsInRange(enemys,5)
-		end
-		return t
-	end
-	return TensorCore.mGetTarget()]]
 end
 
 
@@ -2255,23 +2533,7 @@ local function Polyglot_Combo()  --通晓循环，已适配全等级
 end
 
 local function DOT_Combo()  --dot循环，已适配全等级
---			if TensorCore.hasBuff(player, 3870) and MhachBLM.BLM.DOT and MissinMhachBLMyBuff(target, DotBuffs) and IsReady(DOT_AOE_3) then return DOT_AOE_3, target end
-	--[[if MhachBLM.BLM.DOT and not MhachBLM.BLM.Burn then
-		target = TensorCore.mGetTarget()
-		if TensorCore.hasBuff(player, 3870) then
-			if MissinMhachBLMyBuff(target, DotBuffs) and not MhachBLM.BLM.Smart_Target and (MhachBLM.Target.aoe_num <= 2 or not MhachBLM.BLM.AOE) then return DOT_3, target end
-			if (MhachBLM.Target.aoe_num <= 2 or not MhachBLM.BLM.AOE) and MhachBLM.BLM.Smart_Target then
-				if MhachBLM.Target.aoe_num >= 2 then
-					target = FindDotTarget(enemys)
-					if target ~= nil  then
-						return DOT_3, target
-					end
-				end
-			end
-		end
-		return nil ,nil
-	end
-	return nil ,nil]]
+
 	local t = nil
 	if self.BLM.Smart_Target then  --智能目标
 		t = FindDotTarget(enemys)
@@ -2318,12 +2580,6 @@ local function Fire_Ice()  --火转冰，已适配全等级
 			if Ji_Ke:IsReady() and IsReady(Ji_Ke) and ((canuse and Fire_4.cd/Fire_4.recasttime <= 0.5) or canuse2) and not ShunFaBuff() then
 				self.JoinACR(Ji_Ke.id)
 			end
-			--[[if Ji_Ke.cd <= 1.5 and canuse and beilun < 25 and not ShunFaBuff() and tongxiao>= 1 and MhachBLM.BLM.Triplecastnot and not MhachBLM.BLM.More_Move then  --差一点即刻好就给个瞬发但是必须是异言
-				InstantWindow =true
-			end]]
-			--[[if Ji_Ke.cd > 0 and (not ShunFaBuff()) and canuse and beilun < 25 and (not (San_Lian.cd >= 0.1 and San_Lian.cd <= 59.9)) and MhachBLM.NotHold(San_Lian) and MhachBLM.BLM.Triplecast and not MhachBLM.BLM.More_Move then
-				MhachBLM.Action(San_Lian, player)
-			end]]
 			if (ShunFaBuff()) and canuse then
 				self.JoinACR(Xing_Ling.id)
 			end
@@ -2610,7 +2866,7 @@ function self.JoinACR(id, HighPriority)
 	return true
 end
 
-local MainRotationList = {
+MainRotationList = {
 	[1] = Polyglot_Combo,
 	[2] = DOT_Combo,
 	[3] = Amplifier,
@@ -2781,7 +3037,7 @@ function self.Draw()
 				GUI:PushStyleColor(GUI.Col_Text, 1, 0, 0, 1)
 			end
 			GUI:Button(T["HSet"][1][Language] , 100, 20)
-			if GUI:IsItemClicked(0)  then
+			if GUI:IsItemClicked(0) then
 				settingUI = false
 				hotbarUI = true
 				qtUI = false
@@ -2898,23 +3154,31 @@ function self.Draw()
 					PotionIndex = index
 				end
 				GUI:Spacing()
-				GUI:Text('Version:  ' .. version)
 				GUI:PopItemWidth()
-				--[[if inputChanged then
-					if input ~= nil and input ~= '' then
-                        local newStr, _ = string.gsub(input, ", ", ",")
-                        local blackList = splitString(newStr, ",")
-                        self.Settings.DotBlackList = {byContentId = {},byName = {},list = {}}
-                        for _, id in pairs(blackList) do
-							self.Settings.DotBlackList[tonumber(id)] = true
-                            --table.insert(MhachBLM.Settings.DotBlackList, tonumber(id))
-                        end
+				if needUpdate then
+					GUI:TextColored( 1, 0, 0, 1, "Version   " .. version .. "    ")
+					GUI:SameLine()
+					if not needReload then
+						GUI:Button(T["MSet"][15][Language] , 100, 20)
+						if GUI:IsItemClicked(0) then
+							needReload = UpdateFile()
+						end
 					else
-						self.Settings.DotBlackList = {byContentId = {},byName = {},list = {}}
-                    end
-
-					SaveSettings()
-				end]]
+						GUI:Button(T["MSet"][16][Language] , 150, 20)
+						if GUI:IsItemClicked(0) then
+							Reload()
+						end
+					end
+				else
+					GUI:TextColored( 0, 1, 0, 1, "Version   " .. version .. "    ")
+					GUI:SameLine()
+					GUI:Button(T["MSet"][14][Language] , 100, 20)
+					if GUI:IsItemClicked(0) then
+						CheckUpdate()
+					end
+				end
+				GUI:Text("Version Log:")
+				GUI:Text(extractByLanguage(base64ToString(vlog), Language))
 				if changed then
 					self.Settings.Debug = value
 					SaveSettings()
@@ -2957,14 +3221,7 @@ function self.Draw()
 				if changed6 then
 					self.Settings.NewCombo = value6
 					if self.Settings.NewCombo then
-						MhachBLMTest = FileLoad(Module)
-						if MhachBLMTest ~= nil then
-							self.DebugPrint("新模型已启用.")
-							self.DebugPrint("测试获取新模型数据:"..MhachBLMTest.SkillsTest[142].Inform.Name)
-						else
-							self.DebugPrint("未成功加载新模型.")
-							self.Settings.NewCombo = false
-						end
+						--MhachBLMTest = FileLoad(Module)
 					else
 						self.DebugPrint("新模型已禁用.")
 					end
@@ -3341,6 +3598,9 @@ function self.Draw()
 							JoinHotbarQueue(skill, id)
 							
 						end
+						if GUI:IsItemHovered() then
+							GUI:SetTooltip(self.Skills[UpgradeSkill(id)].name)
+						end
 						if skill.inHotbarList then
 							local x = (index - 1) * 48 + 5
 							local y = indey * 48 + 3
@@ -3394,6 +3654,7 @@ function self.OnLoad()
 
     --ACR_MyProfile_MySavedVar = ACR.GetSetting("ACR_MyProfile_MySavedVar", false)
 	LoadTranslation()
+	--LoadRotation()
 	LoadSettings()
 	LoadHotBar()
 	LoadQt()
