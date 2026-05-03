@@ -764,10 +764,13 @@ local ForceAbl = false   --是否强制硬插
 --local lastGCDTime = 0  --上一个gcd技能的全局时间ms
 --local ablTickTime = 0  --能力技加入队列全局时间ms
 --local gcdTickTime = 0  --gcd加入队列全局时间ms
+
 local settingUI = true  --acr设置主界面
 local hotbarUI = false  --hotbar设置界面
 local qtUI = false  --qt设置界面
 local blacklistUI = false --黑名单界面
+local supUI = false
+
 local faceX = nil  --面向坐标
 local faceY = nil
 local faceZ = nil
@@ -3016,6 +3019,7 @@ function self.Draw()
 				hotbarUI = false
 				qtUI = false
 				blacklistUI = false
+				supUI = false
 			end
 			GUI:SameLine()
 			if settingUI then
@@ -3031,6 +3035,7 @@ function self.Draw()
 				hotbarUI = true
 				qtUI = false
 				blacklistUI = false
+				supUI = false
 			end
 			GUI:SameLine()
 			if hotbarUI then
@@ -3046,6 +3051,7 @@ function self.Draw()
 				hotbarUI = false
 				qtUI = true
 				blacklistUI = false
+				supUI = false
 			end
 			GUI:SameLine()
 			if qtUI then
@@ -3061,8 +3067,25 @@ function self.Draw()
 				hotbarUI = false
 				qtUI = false
 				blacklistUI = true
+				supUI = false
 			end
+			GUI:SameLine()
 			if blacklistUI then
+				GUI:PopStyleColor(1)
+			end
+
+			if supUI then
+				GUI:PushStyleColor(GUI.Col_Text, 1, 0, 0, 1)
+			end
+			GUI:Button(T["Sup"][1][Language] , 100, 20)
+			if GUI:IsItemClicked(0) then
+				settingUI = false
+				hotbarUI = false
+				qtUI = false
+				blacklistUI = false
+				supUI = true
+			end
+			if supUI then
 				GUI:PopStyleColor(1)
 			end
 
@@ -3143,6 +3166,17 @@ function self.Draw()
 				GUI:Dummy(20, 20)
 				GUI:SameLine()
 				local value11, changed11 = GUI:Checkbox(T["MSet"][16][Language], self.Settings.AutoUpdate)
+				GUI:SameLine()
+				GUI:Dummy(20, 20)
+				GUI:SameLine()
+				--GUI:Button(T["MSet"][17][Language] , 100, 20)
+				GUI:ImageButton("github", Icons .. [[github_icon.png]], 20, 20)
+				if GUI:IsItemHovered() then
+					GUI:SetTooltip(T["MSet"][17][Language])
+				end
+				if GUI:IsItemClicked(0) then
+					io.popen("start https://github.com/TabooWhisky/MhachBLM"):close()
+				end
 				GUI:Text("Version Log:")
 				GUI:Text(extractByLanguage(base64ToString(vlog), Language))
 				if changed then
@@ -3381,6 +3415,47 @@ function self.Draw()
 						GUI:Separator()
 					end
 				end
+			end
+
+			if supUI then
+				GUI:PushStyleColor(GUI.Col_Text, 1, 1, 0, 1)
+				GUI:BulletText(T["Sup"][2][Language])
+				GUI:PopStyleColor(1)
+				GUI:Image(Icons .. [[wechat_icon.png]], 350, 350)
+				GUI:SameLine()
+				GUI:Image(Icons .. [[alipay_icon.png]], 350, 350)
+				GUI:Dummy(100, 20)
+				GUI:SameLine()
+				GUI:TextColored( 0, 1, 0, 1, T["Sup"][6][Language])
+				GUI:SameLine()
+				GUI:Dummy(160, 20)
+				GUI:SameLine()
+				GUI:TextColored( 0, 1, 1, 1, T["Sup"][7][Language])
+				GUI:Separator()
+				GUI:Image(Icons .. [[ifdian_icon.png]], 80, 80)
+				if GUI:IsItemHovered() then
+					GUI:SetTooltip(T["Sup"][3][Language])
+				end
+				if GUI:IsItemClicked(0) then   --横向+53,纵向+49
+					io.popen("start https://ifdian.net/a/jianguo00"):close()
+				end
+				GUI:SameLine()
+				GUI:Image(Icons .. [[ko-fi_icon.png]], 80, 80)
+				if GUI:IsItemHovered() then
+					GUI:SetTooltip(T["Sup"][8][Language])
+				end
+				if GUI:IsItemClicked(0) then   --横向+53,纵向+49
+					io.popen("start https://ko-fi.com/whiskytaboo"):close()
+				end
+				GUI:Separator()
+				GUI:PushStyleColor(GUI.Col_Text, 1, 1, 0, 1)
+				GUI:BulletText(T["Sup"][4][Language])
+				GUI:PopStyleColor(1)
+				GUI:BulletText("Discord ID:")
+				GUI:SameLine()
+				GUI:PushItemWidth(150)
+				GUI:InputText("##discordid", T["Sup"][5][Language], GUI.InputTextFlags_AutoSelectAll + GUI.InputTextFlags_ReadOnly)
+				GUI:PopItemWidth()
 			end
         end
 		GUI:End()
