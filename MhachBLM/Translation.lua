@@ -174,6 +174,24 @@ local tbl =
             ["EN"] = "Soul Drift",
             ["JP"] = "魂の漂流",
         },
+        [14] =
+        {
+            ["CN"] = "检查更新",
+            ["EN"] = "Check Update",
+            ["JP"] = "確認更新",
+        },
+        [15] =
+        {
+            ["CN"] = "更新",
+            ["EN"] = "Update",
+            ["JP"] = "更新",
+        },
+        [16] =
+        {
+            ["CN"] = "点击重载以应用更新",
+            ["EN"] = "Click reload to apply updates",
+            ["JP"] = "アプリをクリック更新",
+        },
     },
 
     ["HSet"] =
