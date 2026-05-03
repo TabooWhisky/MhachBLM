@@ -3164,10 +3164,11 @@ function self.Draw()
 							needReload = UpdateFile()
 						end
 					else
-						--GUI:Button(T["MSet"][16][Language] , 300, 20)
+						--[[GUI:Button(T["MSet"][16][Language] , 300, 20)
 						if GUI:IsItemClicked(0) then
 							Reload()
-						end
+						end]]
+						Reload()
 					end
 				else
 					GUI:TextColored( 0, 1, 0, 1, "Version   " .. version .. "    ")
