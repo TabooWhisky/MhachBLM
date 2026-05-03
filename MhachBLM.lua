@@ -1542,8 +1542,8 @@ local function UpdateFile()
     end
     if copyFiles(exPath, replacePath) then
 		self.DebugPrint2("Update Successs!Now Reload!", nil, 3)
-		if FileExists(ModulePath .. [[Temp\Download]]) then
-			FileDelete(ModulePath .. [[Temp\Download]])
+		if FolderExists(ModulePath .. [[Temp\Download]]) then
+			FolderDelete(ModulePath .. [[Temp\Download]])
 		end
 		return true
 	end
