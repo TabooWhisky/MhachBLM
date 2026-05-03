@@ -192,6 +192,14 @@ local tbl =
             ["EN"] = "Enable automatic updates",
             ["JP"] = "自動更新を有効にする",
         },
+        [17] =
+        {
+            ["CN"] = "打开ACR主页",
+            ["EN"] = "ACR Home Page",
+            ["JP"] = "ACRホームページ",
+        },
+
+
     },
 
     ["HSet"] =
@@ -294,6 +302,58 @@ local tbl =
             ["CN"] = "×",
             ["EN"] = "×",
             ["JP"] = "×",
+        },
+    },
+
+    ["Sup"] =
+    {
+        [1] =
+        {
+            ["CN"] = "支持一下",
+            ["EN"] = "Sponsor",
+            ["JP"] = "スポンサー",
+        },
+        [2] =
+        {
+            ["CN"] = "赞助仅代表支持作者,本ACR为免费,赞助不会获得任何额外功能!",
+            ["EN"] = "Sponsorship only represents support for the author. This ACR is free, and sponsorship will not provide any additional features!",
+            ["JP"] = "スポンサーは作者をサポートすることを意味するだけで、このACRは無料であり、スポンサーになっても追加機能は得られません!",
+        },
+        [3] =
+        {
+            ["CN"] = "点击打开爱发电",
+            ["EN"] = "Click to open ifdian",
+            ["JP"] = "クリックして開くifdian",
+        },
+        [4] =
+        {
+            ["CN"] = "如需反馈BUG,可在Discord私聊我,工作日晚上在线,节假日下午在线(北京时间)",
+            ["EN"] = "If you need to report a BUG, you can private message me on Discord. I am online on weekday evenings and holiday afternoons (Beijing time).",
+            ["JP"] = "バグのフィードバックが必要な場合は、Discordで私に個別メッセージを送ってください。平日の夜と祝日の午後にオンラインです(北京時間).",
+        },
+        [5] =
+        {
+            ["CN"] = "869226755058184252",
+            ["EN"] = "869226755058184252",
+            ["JP"] = "869226755058184252",
+        },
+        [6] =
+        {
+            ["CN"] = "微信赞赏(备注你的昵称)",
+            ["EN"] = "WeChat Tip (note nickname)",
+            ["JP"] = "WeChatでの感謝(ニックネーム)",
+        },
+        [7] =
+        {
+            ["CN"] = "支付宝转账(备注你的昵称)",
+            ["EN"] = "Alipay transfer (note nickname)",
+            ["JP"] = "Alipayで送金(ニックネーム)",
+        },
+        [8] =
+        {
+            ["CN"] = "点击打开ko-fi",
+            ["EN"] = "Click to open ko-fi",
+            ["JP"] = "クリックして開くko-fi",
         },
     },
 }
