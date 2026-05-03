@@ -91,7 +91,8 @@ self.Settings = {
 		list = {}
 	},  --dot黑名单
 	SlideFast = false,  --滑板鞋
-	SoulDrift = false  --灵魂漂移
+	SoulDrift = false,  --灵魂漂移
+	AutoUpdate = false,
 }
 
 self.GUI = {
@@ -863,7 +864,7 @@ local function LoadSettings()
 		self.Settings.SlideFast = tbl.Value.SlideFast or false
 		self.Settings.SoulDrift = tbl.Value.SoulDrift or false
 		Language = tbl.Value.Language or "CN"
-
+		self.Settings.AutoUpdate = tbl.Value.AutoUpdate or false
 	end
 end
 
@@ -872,23 +873,7 @@ local function SaveSettings()
 {
 	Value =
 	{
-		AOE = true,
-		Amplifier = true,
-		Burn = true,
-		CD = true,
-		DOT = true,
-		Debug = true,
-		Ley_Lines = true,
-		Manafont = true,
-		More_Move = true,
-		NewCombo = true,
-		Polyglot = true,
-		Potion = true,
-		Smart_Target = true,
-		Triplecast = true,
-		Auto_Potion = true,
-		Short_Rotation = true,
-		Burn_Polyglot = true,
+
 	},
 }
 	tbl.Value.CD = self.BLM.CD
@@ -918,6 +903,7 @@ local function SaveSettings()
 	tbl.Value.InsureOGCD = self.Settings.InsureOGCD
 	tbl.Value.SlideFast = self.Settings.SlideFast
 	tbl.Value.SoulDrift = self.Settings.SoulDrift
+	tbl.Value.AutoUpdate = self.Settings.AutoUpdate
 	FileSave(Settings,tbl)
 end
 
@@ -1555,7 +1541,7 @@ local function UpdateFile()
 		return true
     end
     if copyFiles(exPath, replacePath) then
-		self.DebugPrint2("Update Successs!", nil, 3)
+		self.DebugPrint2("Update Successs!Now Reload!", nil, 3)
 		return true
 	end
 	return false
@@ -3079,28 +3065,7 @@ function self.Draw()
 
 			GUI:PopStyleColor(3)
 			GUI:Separator()
-			--[[GUI:Button(T["MSet"][1][Language], 80, 30)
-			if GUI:IsItemClicked(0) then
-				settingUI = true
-				hotbarUI = false
-				qtUI = false
-            end
 
-			GUI:SameLine()
-			GUI:Button(T["HSet"][1][Language], 80, 30)
-			if GUI:IsItemClicked(0) then
-				settingUI = false
-				hotbarUI = true
-				qtUI = false
-            end
-
-			GUI:SameLine()
-			GUI:Button(T["QSet"][1][Language], 80, 30)
-			if GUI:IsItemClicked(0) then
-				settingUI = false
-				hotbarUI = false
-				qtUI = true
-            end]]
 			if settingUI then     --主设置界面
 				GUI:Spacing()
 				local value, changed = GUI:Checkbox(T["MSet"][2][Language], self.Settings.Debug)
@@ -3125,13 +3090,6 @@ function self.Draw()
 				GUI:Spacing()
 				local value10, changed10 = GUI:Checkbox(T["MSet"][13][Language], self.Settings.SoulDrift)
 				GUI:Spacing()
-				--[[GUI:Text(T["MSet"][9][Language])
-				GUI:SameLine()
-				local input, inputChanged = GUI:InputText("##Dot黑名单", listToString(self.Settings.DotBlackList, ","), GUI.InputTextFlags_CharsNoBlank)
-				if GUI:IsItemHovered() then
-					GUI:SetTooltip(T["MSet"][10][Language])
-				end
-				GUI:Spacing()]]
 				GUI:Text('Language:  ')
 				GUI:SameLine()
             	GUI:PushItemWidth(60)
@@ -3178,6 +3136,10 @@ function self.Draw()
 						CheckUpdate()
 					end
 				end
+				GUI:SameLine()
+				GUI:Dummy(20, 20)
+				GUI:SameLine()
+				local value11, changed11 = GUI:Checkbox(T["MSet"][16][Language], self.Settings.AutoUpdate)
 				GUI:Text("Version Log:")
 				GUI:Text(extractByLanguage(base64ToString(vlog), Language))
 				if changed then
@@ -3216,6 +3178,10 @@ function self.Draw()
 				if changed10 then
 					self.Settings.SoulDrift = value10
 					if value10 then self.Settings.SlideFast = false end
+					SaveSettings()
+				end
+				if changed11 then
+					self.Settings.AutoUpdate = value11
 					SaveSettings()
 				end
 
@@ -3652,7 +3618,6 @@ function self.OnOpen()
 end
 
 function self.OnLoad()
-
     --ACR_MyProfile_MySavedVar = ACR.GetSetting("ACR_MyProfile_MySavedVar", false)
 	LoadTranslation()
 	--LoadRotation()
@@ -3660,6 +3625,12 @@ function self.OnLoad()
 	LoadHotBar()
 	LoadQt()
 	LoadDot()
+	if self.Settings.AutoUpdate then
+		CheckUpdate()
+		if needUpdate and UpdateFile() then
+			Reload()
+		end
+	end
 	--[[MhachBLMRotation = FileLoad(Module)
 	if MhachBLMRotation ~= nil then
 		d(type(MhachBLMRotation))
