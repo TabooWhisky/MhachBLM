@@ -226,7 +226,27 @@ function self.RegisterSkill(action, isGCD, tag, bar)
 	tag = tag or "Default"  --传入一个tag，标记为AOE，DOT以特殊处理
 	if bar == nil then bar = true end
     if action then
-        self.Skills[action.id] = {
+		if tag == "Potion" then
+			self.Skills[846] = {
+				name = tag,
+				IsGCD = isGCD,  -- 是否为gcd技能
+				holdTime = 0,  --延后时间，秒
+				delayTime = 0, --acr队列时间，秒
+				iconPath =  GetLuaModsPath() .. [[ACR\CombatRoutines\MhachBLM\Icons\]] .. "846.png",  --图片路径
+				showHotbar = false,  --是否显示hotbar
+				changed = false,  --按钮中间值
+				keyBind = nil,  --绑定的按键
+				keyName = nil, --按键名称
+				keyC = false,  --Ctrl
+				keyA = false,  --ALT
+				keyS = false,  --Shift
+				keyBinding = false,  --是否正在绑定按键
+				inHotbarList = false,  --是否在热键栏队列
+				tag = tag,
+				bar = bar
+			}
+		else
+			self.Skills[action.id] = {
 			name = action.name,
             IsGCD = isGCD,  -- 是否为gcd技能
 			holdTime = 0,  --延后时间，秒
@@ -244,6 +264,7 @@ function self.RegisterSkill(action, isGCD, tag, bar)
 			tag = tag,
 			bar = bar
         }
+		end
         self.DebugPrint("Registered Skill: " .. action.name .. " (" .. action.id .. ")")
     else
 		--特殊技能处理，比如锁定面向
@@ -254,25 +275,6 @@ function self.RegisterSkill(action, isGCD, tag, bar)
 				holdTime = 0,  --延后时间，秒
 				delayTime = 0, --acr队列时间，秒
 				iconPath =  GetLuaModsPath() .. [[ACR\CombatRoutines\MhachBLM\Icons\]] .. "face.png",  --图片路径
-				showHotbar = false,  --是否显示hotbar
-				changed = false,  --按钮中间值
-				keyBind = nil,  --绑定的按键
-				keyName = nil, --按键名称
-				keyC = false,  --Ctrl
-				keyA = false,  --ALT
-				keyS = false,  --Shift
-				keyBinding = false,  --是否正在绑定按键
-				inHotbarList = false,  --是否在热键栏队列
-				tag = tag,
-				bar = bar
-			}
-		elseif tag == "Potion" then
-			self.Skills[846] = {
-				name = tag,
-				IsGCD = isGCD,  -- 是否为gcd技能
-				holdTime = 0,  --延后时间，秒
-				delayTime = 0, --acr队列时间，秒
-				iconPath =  GetLuaModsPath() .. [[ACR\CombatRoutines\MhachBLM\Icons\]] .. "846.png",  --图片路径
 				showHotbar = false,  --是否显示hotbar
 				changed = false,  --按钮中间值
 				keyBind = nil,  --绑定的按键
@@ -745,6 +747,8 @@ local LuaPath = GetLuaModsPath()
 local ModulePath = LuaPath .. [[ACR\CombatRoutines\MhachBLM\]]
 local Module = ModulePath .. [[Test.lua]]
 local Rotation = ModulePath .. [[MhachBLMRotation.lua]]
+local Data = ModulePath .. [[Data\]]
+local Skills = Data .. [[SkillsData.lua]]
 local Settings = ModulePath .. [[Settings.lua]]
 local HotbarSettings = ModulePath .. [[HotbarSettings.lua]]
 local Icons = LuaPath .. [[ACR\CombatRoutines\MhachBLM\Icons\]]
@@ -782,8 +786,8 @@ local speed_F = 6
 local speed_S = 2.4000000953674
 local speed_W = 2.4000000953674
 
-local version = "1.99"
-local vlog = "W0NOXVsxLkhvdGJhcuaYvuekuuaKgOiDveWQjeWtlwoyLuiHquWKqOeBteaegemtguS8mOWMlgozLua3u+WKoOiHquWKqOabtOaWsAo0LuS8mOWMluaVsOaNrue7k+aehF0KW0VOXVsxLiBIb3RiYXIgZGlzcGxheXMgc2tpbGwgbmFtZXMKMi4gQXV0b21hdGljIExpbmcgSmkgU291bCBvcHRpbWl6YXRpb24KMy4gQWRkIGF1dG8tdXBkYXRlCjQuIE9wdGltaXplIGRhdGEgc3RydWN0dXJlXQpbSlBdWzEu44Ob44OD44OI44OQ44O844Gr44K544Kt44Or5ZCN44KS6KGo56S6CjIu6Ieq5YuV6ZyK5qW16a2C44Gu5pyA6YGp5YyWCjMu6Ieq5YuV5pu05paw44KS6L+95YqgCjQu44OH44O844K/5qeL6YCg44KS5pyA6YGp5YyWXQ=="
+local version = "1.99.1"
+local vlog = "W0NOXVsxLuS/ruWkjWJ1Z10KW0VOXVsxLkZpeCB0aGUgYnVnXQpbSlBdWzEu44OQ44Kw44KS5L+u5q2j44GZ44KLXQ=="
 local needReload = false
 local needUpdate = false
 
@@ -1663,13 +1667,17 @@ function self.MoveHold(id)
 end
 
 function self.ResetHoldList()  --重置hold列表
-	HoldList = {}
-	HoldSeen = {}
-	
+	for _, id in ipairs(sortedIds) do
+		self.Skills[id].holdTime = 0
+	end
 end
 
 function self.PrintHoldList()  --打印hold列表
-	self.DebugPrint("HoldList: " .. table.concat(HoldList,","))
+	for _, id in ipairs(sortedIds) do
+		if self.Skills[id].holdTime > 0 then
+			self.DebugPrint("HoldList: " .. self.Skills[id].name .. "for" .. self.Skills[id].holdTime .. "s")
+		end
+	end
 end
 
 function self.NotHold(id)  --检查技能是否没有hold
@@ -1742,11 +1750,13 @@ local function AutoUmbralSoul()  --自动灵极魂
 	if self.Skills[-1].inHotbarList and level >= 35 then
 		if fire_ice >= 1 and Xing_Ling.cd <= 0 then  --火状态需要转冰
 			SendTextCommand("/ac " .. Xing_Ling.name)
-		elseif fire_ice <= -1 and (mp < 10000 or (level >= 58 and ice_heart < 3)) and Ling_Ji_Hun.cd == 0 then
+		elseif fire_ice <= -1 and (mp < 10000 or (level >= 58 and ice_heart < 3) or fire_ice >= -2) and Ling_Ji_Hun.cd == 0 then
 			SendTextCommand("/ac " .. Ling_Ji_Hun.name)
 		elseif ((mp >= 10000 and level < 58) or (mp >= 10000 and level >=58 and ice_heart >= 3)) and fire_ice == -3 then
 			self.Skills[-1].inHotbarList = false
 		end
+	elseif level < 35 then
+		self.Skills[-1].inHotbarList = false
 	end
 end
 
@@ -2624,16 +2634,16 @@ end
 
 local function LeyLines() --黑魔纹,已适配全等级，需要调gcd优化----------------------------------------------------------------------------
 	if self.BLM.Potion and self.BLM.Auto_Potion and TensorCore.hasBuff(player, 737) then
-		if IsReady(Potion) then
-			self.JoinACR(Potion.id)
+		if IsReady(Potion) and Potion:IsReady() then
+			self.JoinACR(Potion.id, true)
 		end
 	end
 	if self.BLM.Ley_Lines and self.BLM.CD then
 		if level >= 52 then
 			local canuse = (Mo_Wen:IsReady() and (fire_ice >= 3 or self.BLM.Burn)) or (Mo_Wen.cd == 0 and (fire_ice >= 1 or self.BLM.Burn))
-			if (not TensorCore.hasBuff(player, 737)) and canuse and IsReady(Mo_Wen) then
+			if canuse and IsReady(Mo_Wen) and not TensorCore.hasBuff(player, 737) then
 				--if San_Lian:IsReady() and MhachBLM.BLM.Triplecast and MhachBLM.NotHold(San_Lian) and (not MhachBLM.Settings.RedPlayer) and not TensorCore.hasBuff(player, 1211) then return San_Lian, player end
-				self.JoinACR(Mo_Wen.id)
+				self.JoinACR(Mo_Wen.id, true)
 			end
 		end
 		return false ,nil
@@ -2678,7 +2688,7 @@ local function Manafont()  --魔泉，已适配全等级，需要对黑魔纹开
 	if self.BLM.Manafont and self.BLM.CD then
 		if level >=30 then  --解锁了魔泉和三档火
 			if mp <800 and fire_ice >= 1 and Mo_Quan:IsReady() and IsReady(Mo_Quan) then
-			self.JoinACR(Mo_Quan.id) end
+			self.JoinACR(Mo_Quan.id, true) end
 		end
 		return false ,nil
 	end
@@ -2688,9 +2698,9 @@ end
 local function Amplifier()  --详述，已适配全等级
 	if self.BLM.Amplifier and self.BLM.CD then
 		if level >= 98 then  --三档豆子
-			if tongxiao <= 2 and Xiang_Shu.cdmax - Xiang_Shu.cd <= 1.5 and IsReady(Xiang_Shu) then self.JoinACR(Xiang_Shu.id) end
+			if tongxiao <= 2 and Xiang_Shu.cdmax - Xiang_Shu.cd <= 1.5 and IsReady(Xiang_Shu) then self.JoinACR(Xiang_Shu.id, true) end
 		elseif level >= 86 then  --二档豆子
-			if tongxiao <= 1 and Xiang_Shu.cdmax - Xiang_Shu.cd <= 1.5 and IsReady(Xiang_Shu) then self.JoinACR(Xiang_Shu.id) end
+			if tongxiao <= 1 and Xiang_Shu.cdmax - Xiang_Shu.cd <= 1.5 and IsReady(Xiang_Shu) then self.JoinACR(Xiang_Shu.id, true) end
 		end
 	end
 
@@ -2774,6 +2784,8 @@ function self.UseHotbarSkill(id, upgrade)   --使用hotbar技能
 	if id >= 0 then  --真实技能进入技能队列
 		self.Skills[DemotionSkill(id)].inHotbarList = true
 		HotbarSkills:enqueueUnic(id)
+	else
+		self.Skills[id].inHotbarList = true
 	end
 end
 
@@ -3226,6 +3238,7 @@ function self.Draw()
 					self.Settings.NewCombo = value6
 					if self.Settings.NewCombo then
 						--MhachBLMTest = FileLoad(Module)
+						FileSave(Skills,sortedIds)
 					else
 						self.DebugPrint("新模型已禁用.")
 					end
