@@ -786,7 +786,7 @@ local speed_F = 6
 local speed_S = 2.4000000953674
 local speed_W = 2.4000000953674
 
-local version = "1.99.1"
+local version = "1.99.2"
 local vlog = "W0NOXVsxLuS/ruWkjWJ1Z10KW0VOXVsxLkZpeCB0aGUgYnVnXQpbSlBdWzEu44OQ44Kw44KS5L+u5q2j44GZ44KLXQ=="
 local needReload = false
 local needUpdate = false
@@ -2635,7 +2635,7 @@ end
 local function LeyLines() --黑魔纹,已适配全等级，需要调gcd优化----------------------------------------------------------------------------
 	if self.BLM.Potion and self.BLM.Auto_Potion and TensorCore.hasBuff(player, 737) then
 		if IsReady(Potion) and Potion:IsReady() then
-			self.JoinACR(Potion.id, true)
+			self.JoinACR(Potion.id)
 		end
 	end
 	if self.BLM.Ley_Lines and self.BLM.CD then
@@ -2643,7 +2643,7 @@ local function LeyLines() --黑魔纹,已适配全等级，需要调gcd优化---
 			local canuse = (Mo_Wen:IsReady() and (fire_ice >= 3 or self.BLM.Burn)) or (Mo_Wen.cd == 0 and (fire_ice >= 1 or self.BLM.Burn))
 			if canuse and IsReady(Mo_Wen) and not TensorCore.hasBuff(player, 737) then
 				--if San_Lian:IsReady() and MhachBLM.BLM.Triplecast and MhachBLM.NotHold(San_Lian) and (not MhachBLM.Settings.RedPlayer) and not TensorCore.hasBuff(player, 1211) then return San_Lian, player end
-				self.JoinACR(Mo_Wen.id, true)
+				self.JoinACR(Mo_Wen.id)
 			end
 		end
 		return false ,nil
@@ -2948,7 +2948,11 @@ function self.Cast()
 			end]]
 			if not OGCDSkills:isEmpty() then
 				if OGCDSkills:peek() == 158 then  --因为魔泉前的gcd技能是空的所以添加一个以确保窗口函数可以正常触发
-					self.JoinACR(Fire_4.id)
+					if tongxiao == 0 then
+						ForceAbl = true
+					else
+						self.JoinACR(Fire_4.id)
+					end
 				end
 			end
 			--TensorCore.hasBuff(player, 4410)--无敌buff
