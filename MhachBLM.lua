@@ -786,7 +786,7 @@ local speed_F = 6
 local speed_S = 2.4000000953674
 local speed_W = 2.4000000953674
 
-local version = "1.99.2"
+local version = "1.99.3"
 local vlog = "W0NOXVsxLuS/ruWkjWJ1Z10KW0VOXVsxLkZpeCB0aGUgYnVnXQpbSlBdWzEu44OQ44Kw44KS5L+u5q2j44GZ44KLXQ=="
 local needReload = false
 local needUpdate = false
@@ -1711,16 +1711,20 @@ local function LockFace()  --锁定面向
 	if self.Skills[-2].inHotbarList then
 		if Fire_4.cd >= 0 and Fire_4.cd <= 0.5 and not (GUI:IsKeyDown(87) or GUI:IsKeyDown(65) or GUI:IsKeyDown(83) or GUI:IsKeyDown(63)) then
 			player:SetSpeed(1, 0, 0, 0, 0)
-			SendTextCommand("/automove")
+			if player:GetSpeed().Forward == 0 then
+				SendTextCommand("/automove")
+			end
 		end
 		
-		if faceX == nil or faceY == nil or faceZ == nil then
-			local x = 2 * player.camera.x - player.pos.x
-			local y = player.pos.y
-			local z = 2 * player.camera.z - player.pos.z
-			player:SetFacing(x, y, z)--面向镜头
-		else
+		if faceX ~= nil and faceY ~= nil and faceZ ~= nil then
 			player:SetFacing(faceX, faceY, faceZ)  --面向指定坐标
+		elseif faceX ~= nil and faceY == nil and faceZ == nil then
+			player:SetFacing(faceX)--面向镜头
+		else
+			--[[local x = 2 * player.camera.x - player.pos.x
+			local y = player.pos.y
+			local z = 2 * player.camera.z - player.pos.z]]
+			player:SetFacing(player.camera.h - math.pi)--面向镜头
 		end
 	end
 	if (GUI:IsKeyDown(87) or GUI:IsKeyDown(65) or GUI:IsKeyDown(83) or GUI:IsKeyDown(68)) and player:GetSpeed().Forward == 0 then
@@ -1728,7 +1732,10 @@ local function LockFace()  --锁定面向
 	end
 end
 
-function self.LockFaceOn()
+function self.LockFaceOn(x, y, z)
+	faceX = x or nil
+	faceY = y or nil
+	faceZ = z or nil
 	self.Skills[-2].inHotbarList = true
 end
 
@@ -1739,12 +1746,12 @@ function self.LockFaceOff()
 	faceZ = nil
 end
 
-function self.LockFacePosition(x, y, z)
+--[[function self.LockFacePosition(x, y, z)
 	self.Skills[-2].inHotbarList = true
 	faceX = x
 	faceY = y
 	faceZ = z
-end
+end]]
 -----------------------------------------------------------------------------------------
 local function AutoUmbralSoul()  --自动灵极魂
 	if self.Skills[-1].inHotbarList and level >= 35 then
@@ -2067,6 +2074,10 @@ local function CanCastGCD()  --可以使用gcd技能
 		return true
 	end
     return false
+	--[[if cdmax - cd <= 200 or (Fire_4.cd == 0 or not Fire_4.isoncd) then
+		return true
+	end
+    return false]]
 end
 
 local function CanCastABL()  --可以使用能力技
@@ -2484,11 +2495,11 @@ local function Polyglot_Combo()  --通晓循环，已适配全等级
 		if  ((not self.BLM.AOE) or self.Target.aoe_num <= 1) then
 			
 			if level >= 98 then
-				if tongxiao >= 3 and (tongxiaoTime <= 20 or Xiang_Shu.cdmax - Xiang_Shu.cd <= 1.5) and IsReady(Yi_Yan) then return self.JoinACR(Yi_Yan.id), target end
+				if tongxiao >= 3 and (tongxiaoTime <= 20 or Xiang_Shu.cdmax - Xiang_Shu.cd <= 1.5) and IsReady(Yi_Yan) then return self.JoinACR(Yi_Yan.id, true), target end
 				if tongxiao >= 1 and (not self.BLM.More_Move) and BurnTime(target) and IsReady(Yi_Yan) then return self.JoinACR(Yi_Yan.id), target end  --爆发期打异言
 				if tongxiao >= 1 and self.BLM.Burn_Polyglot and IsReady(Yi_Yan) then return self.JoinACR(Yi_Yan.id), target end  --打完异言
 			elseif level >= 86 then
-				if tongxiao >= 2 and (tongxiaoTime <= 20 or Xiang_Shu.cdmax - Xiang_Shu.cd <= 1.5) and IsReady(Yi_Yan) then return self.JoinACR(Yi_Yan.id), target end
+				if tongxiao >= 2 and (tongxiaoTime <= 20 or Xiang_Shu.cdmax - Xiang_Shu.cd <= 1.5) and IsReady(Yi_Yan) then return self.JoinACR(Yi_Yan.id, true), target end
 				if tongxiao >= 1 and (not self.BLM.More_Move) and BurnTime(target) and IsReady(Yi_Yan) then return self.JoinACR(Yi_Yan.id), target end  --爆发期打异言
 				if tongxiao >= 1 and self.BLM.Burn_Polyglot and IsReady(Yi_Yan) then return self.JoinACR(Yi_Yan.id), target end  --打完异言
 			elseif level >= 80 then  --没有详述
@@ -2804,6 +2815,8 @@ function self.CancelHotbarSkill(id, upgrade)  --取消hotbar技能
 			self.Skills[DemotionSkill(id)].inHotbarList = false
 		end
 		HotbarSkills:removeAll(id)
+	else
+		self.Skills[id].inHotbarList = false
 	end
 end
 
