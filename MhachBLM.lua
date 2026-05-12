@@ -786,7 +786,7 @@ local speed_F = 6
 local speed_S = 2.4000000953674
 local speed_W = 2.4000000953674
 
-local version = "1.99.3"
+local version = "1.99.4"
 local vlog = "W0NOXVsxLuS/ruWkjWJ1Z10KW0VOXVsxLkZpeCB0aGUgYnVnXQpbSlBdWzEu44OQ44Kw44KS5L+u5q2j44GZ44KLXQ=="
 local needReload = false
 local needUpdate = false
@@ -2278,7 +2278,7 @@ local function FindTargetsNum(e)  --查找目标数量
 	local count = 0
 	local itarget = TensorCore.mGetTarget()
 	for _, enemy in pairs(e) do
-		local distance2d = Distance2DT(itarget.pos, enemy.pos)
+		local distance2d = TensorCore.getDistance2d(itarget.pos, enemy.pos)
 		if distance2d <= (5 + enemy.hitradius) then count = count + 1 end
 	end
 	return count
@@ -2293,7 +2293,7 @@ local function FindMaxTargetsInRange(targets, r)  --查找最紧凑敌人
         local count = 0
         for _, itarget in pairs(targets) do
             -- 计算两点之间的距离
-            local distance2d = Distance2DT(center.pos, itarget.pos)
+            local distance2d = TensorCore.getDistance2d(center.pos, itarget.pos)
             -- 检查是否在半径范围内（包括自身）
             if distance2d <= (r +  itarget.hitradius) then
                 count = count + 1
@@ -2387,6 +2387,9 @@ local function AOE_Combo()  --AOE循环，已适配全等级
 					if ice_heart < 3 and IsReady(Ice_4) then return self.JoinACR(Ice_4.id), t end
 				end
 				if tongxiao >= 1 and ice_heart == 3 and self.BLM.Polyglot and IsReady(Hui_Zhuo) and not Xing_Ling:IsReady() then return self.JoinACR(Hui_Zhuo.id), t end
+				if self.Target.aoe_num >= 2 then
+					if tongxiao <= 0 and ice_heart == 3 and Bei_Lun.highlighted == 1 and IsReady(Bei_Lun) and not Xing_Ling:IsReady() then return self.JoinACR(Bei_Lun.id), t end
+				end
 				if ice_heart == 3 and Xing_Ling:IsReady() and IsReady(Xing_Ling) then self.JoinACR(Xing_Ling.id) end
 			end
 
@@ -2557,6 +2560,9 @@ local function DOT_Combo()  --dot循环，已适配全等级
 		end
 	end
 	if t ~= nil and NotInBlackList(t.name, t.contentid, t.hp.percent) then
+		if self.BLM.Smart_Target then
+			t, self.Target.aoe_num = FindMaxTargetsInRange(enemys,5)
+		end
 		local candot = DOT_1.highlighted == 1 or DOT_2.highlighted == 1 or DOT_3.highlighted == 1
 		if self.BLM.DOT and (not self.BLM.Burn) and candot and ((not self.BLM.AOE) or self.Target.aoe_num <= 1) then
 			if level >= 92 then
@@ -2568,8 +2574,7 @@ local function DOT_Combo()  --dot循环，已适配全等级
 			end
 			return false ,nil
 		end
-		candot = DOT_AOE_1.highlighted == 1 or DOT_AOE_2.highlighted == 1 or DOT_AOE_3.highlighted == 1
-		if self.BLM.DOT and self.BLM.AOE and (not self.BLM.Burn) and TensorCore.hasBuff(player, 3870) and self.Target.aoe_num >= 2 then
+		if self.BLM.DOT and self.BLM.AOE and (not self.BLM.Burn) and candot and self.Target.aoe_num >= 2 then
 			if level >= 92 and fire_ice <= 0 then
 				if IsReady(DOT_AOE_3) then return self.JoinACR(DOT_AOE_3.id), t end
 			elseif level >= 64 and fire_ice <= 0 then
@@ -2604,7 +2609,7 @@ local function Fire_Ice()  --火转冰，已适配全等级
 			end
 			local usedmoquan = ((Mo_Quan.cd >= 1 and Mo_Quan.cd <= 98) or (self.BLM.Manafont == false or self.BLM.CD == false) or not IsReady(Mo_Quan))
 			if mp < 800 and fire_ice >= 1 and usedmoquan and IsReady(Ice_3) then return self.JoinACR(Ice_3.id), target end
-			if ShunFaBuff() and fire_ice >= -2 and mp < 800 and IsReady(Ice_3) and usedmoquan then return self.JoinACR(Ice_3.id), target end
+			if ShunFaBuff() and fire_ice >= -2 and mp < 800 and IsReady(Ice_3) and usedmoquan then return self.JoinACR(Ice_3.id, true), target end
 		elseif level >= 35 then
 			local usedmoquan = ((Mo_Quan.cd >= 1 and Mo_Quan.cd <= 98) or (self.BLM.Manafont == false or self.BLM.CD == false) or not IsReady(Mo_Quan))
 			if mp < 800 and fire_ice >= 1 and IsReady(Ice_3) and usedmoquan then return self.JoinACR(Ice_3.id), target end
