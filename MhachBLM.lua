@@ -786,7 +786,7 @@ local speed_F = 6
 local speed_S = 2.4000000953674
 local speed_W = 2.4000000953674
 
-local version = "1.99.6"
+local version = "1.99.7"
 local vlog = "W0NOXVsxLuS/ruWkjWJ1Z10KW0VOXVsxLkZpeCB0aGUgYnVnXQpbSlBdWzEu44OQ44Kw44KS5L+u5q2j44GZ44KLXQ=="
 local needReload = false
 local needUpdate = false
@@ -2175,14 +2175,14 @@ function self.Action(action, t)
 	--SendTextCommand("/ac " .. AutoAttack)
 	if t.distance2d <= action.range or t == player then
 		if IsSkillGCD(action.id) then   --GCD技能处理
-			
+			ForceAbl = false
 			self.DebugPrint("Casting: " .. action.name .. "Target:" .. t.name)
 			return action:Cast(t.id)
 			
 		else   --能力技处理
 			
 			if ForceAbl or self.Settings.InsureOGCD then
-				ForceAbl = false
+				--ForceAbl = false
 				if action.id == 846 then
 					self.DebugPrint("ForceCasting: " .. "Potion" .. " Target:" .. t.name)
 				else
@@ -2197,7 +2197,7 @@ function self.Action(action, t)
 					return SendTextCommand("/ac " .. action.name)
 				end
 			else
-				ForceAbl = false
+				--ForceAbl = false
 				if action.id == 846 then
 					self.DebugPrint("WaveCasting: " .. "Potion" .. " Target:" .. t.name)
 				else
@@ -2841,12 +2841,12 @@ local function CastWindow()
 		return false ,nil
 	end
 	self.DebugPrint("Creat a OGCD window")
-	local id = GCDSkills:peek()
-	GCDSkills:clear()
-	if tongxiao >= 1 and self.BLM.Polyglot and IsReady(Yi_Yan) and (self.Target.aoe_num == 1 or not self.BLM.AOE) and OGCDSkills:peek() ~= 25796 then
+	--local id = GCDSkills:peek()
+	--GCDSkills:clear()
+	if tongxiao >= 1 and self.BLM.Polyglot and IsReady(Yi_Yan) and (self.Target.aoe_num == 1 or not self.BLM.AOE) then
 		--SendTextCommand("/ac " .. Yi_Yan.name)
 		return self.JoinACR(Yi_Yan.id, true)
-	elseif tongxiao >= 1 and self.BLM.Polyglot and IsReady(Hui_Zhuo) and level >= 80 and self.Target.aoe_num >= 2 and self.BLM.AOE and OGCDSkills:peek() ~= 25796 then
+	elseif tongxiao >= 1 and self.BLM.Polyglot and IsReady(Hui_Zhuo) and level >= 80 and self.Target.aoe_num >= 2 and self.BLM.AOE then
 		--SendTextCommand("/ac " .. Hui_Zhuo.name)
 		return self.JoinACR(Hui_Zhuo.id, true)
 	elseif Bei_Lun.highlighted == 1 and Fire_3.highlighted == 0 and IsReady(Bei_Lun) and beilun <= 3 then
@@ -2857,7 +2857,8 @@ local function CastWindow()
 		return DOT_3, target]]
 	end
 	ForceAbl = true  --没有瞬发窗口，强制插能力技
-	return self.JoinACR(id, true), nil
+	--return self.JoinACR(id, true), nil
+	return false, nil
 end
 
 
@@ -3728,7 +3729,7 @@ end]]
 --[[function MhachBLM.DrawFooter()
  
 end]]
-
+CheckUpdate()
 function self.OnOpen()
     self.GUI.open = true
 end
