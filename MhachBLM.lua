@@ -786,8 +786,8 @@ local speed_F = 6
 local speed_S = 2.4000000953674
 local speed_W = 2.4000000953674
 
-local version = "1.99.7"
-local vlog = "W0NOXVsxLuS/ruWkjWJ1Z10KW0VOXVsxLkZpeCB0aGUgYnVnXQpbSlBdWzEu44OQ44Kw44KS5L+u5q2j44GZ44KLXQ=="
+local version = "1.99.8"
+local vlog = "W0NOXVsxLuS8mOWMlui/nOeoi+abtOaWsOa1geeoiwoyLuS/ruWkjee7neS8iueUuOa1ruepuuaJk+aWreivu+adoeWvvOiHtOWNoeS9j+eahOaDheWGtV0KW0VOXVsxLiBPcHRpbWl6ZSB0aGUgcmVtb3RlIHVwZGF0ZSBwcm9jZXNzCjIuIEZpeCB0aGUgaXNzdWUgd2hlcmUgaW50ZXJydXB0aW5nIHRoZSBmbG9hdGluZyBvZiBGUlUgY2F1c2VzIHRoZSBwcm9ncmVzcyBiYXIgdG8gZnJlZXplXQpbSlBdWzEuIOODquODouODvOODiOabtOaWsOODl+ODreOCu+OCueOBruacgOmBqeWMlgoyLiBGUlXmta7pgYrkuK3jgavooYzli5XjgYzkuK3mlq3jgZXjgozjgIHoqq3jgb/ovrzjgb/jgYzlgZzmraLjgZnjgovllY/poYzjga7kv67mraNd"
 local needReload = false
 local needUpdate = false
 
@@ -2177,6 +2177,9 @@ function self.Action(action, t)
 		if IsSkillGCD(action.id) then   --GCD技能处理
 			ForceAbl = false
 			self.DebugPrint("Casting: " .. action.name .. "Target:" .. t.name)
+			if TensorCore.hasBuff(player, 2304) then
+				return SendTextCommand("/ac " .. action.name)
+			end
 			return action:Cast(t.id)
 			
 		else   --能力技处理
