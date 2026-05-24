@@ -2177,9 +2177,6 @@ function self.Action(action, t)
 		if IsSkillGCD(action.id) then   --GCD技能处理
 			ForceAbl = false
 			self.DebugPrint("Casting: " .. action.name .. "Target:" .. t.name)
-			if TensorCore.hasBuff(player, 2304) then
-				return SendTextCommand("/ac " .. action.name)
-			end
 			return action:Cast(t.id)
 			
 		else   --能力技处理
