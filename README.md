@@ -2,12 +2,12 @@
 
 v1.99.9更新
 
-	1.增加短绝望HotBar,开启后会使用醒梦星灵切换冰火,冰状态使用冰悖论,回蓝够了后切火使用绝望,以此往复，醒梦没了自动关闭HotBar
+	1.增加短绝望HotBar,开启后会使用醒梦星灵切换冰火,冰状态使用冰悖论,回蓝够了后切火使用绝望,以此往复，醒梦没了自动关闭HotBar,代码调用为 MhachBLM.UseHotbarSkill(-4)  MhachBLM.CancelHotbarSkill(-4)
 
 v1.99更新
 
 	1.Hotbar显示技能名字
-	2.自动灵极魂优化
+	2.自动灵极魂优化,代码调用为 MhachBLM.UseHotbarSkill(-1)  MhachBLM.CancelHotbarSkill(-1)
 	3.添加自动更新，更新时会卡一下，卡多久取决于你的网络环境，更不了就手动替换
 	4.尝试优化数据结构
 
