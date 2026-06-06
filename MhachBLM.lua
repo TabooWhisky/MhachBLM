@@ -325,6 +325,25 @@ function self.RegisterSkill(action, isGCD, tag, bar)
 				tag = tag,
 				bar = bar
 			}
+		elseif tag == "ShortDespair" then
+			self.Skills[-4] = {
+				name = tag,
+				IsGCD = isGCD,  -- 是否为gcd技能
+				holdTime = 0,  --延后时间，秒
+				delayTime = 0, --acr队列时间，秒
+				iconPath =  GetLuaModsPath() .. [[ACR\CombatRoutines\MhachBLM\Icons\]] .. "shortDespair.png",  --图片路径
+				showHotbar = false,  --是否显示hotbar
+				changed = false,  --按钮中间值
+				keyBind = nil,  --绑定的按键
+				keyName = nil, --按键名称
+				keyC = false,  --Ctrl
+				keyA = false,  --ALT
+				keyS = false,  --Shift
+				keyBinding = false,  --是否正在绑定按键
+				inHotbarList = false,  --是否在热键栏队列
+				tag = tag,
+				bar = bar
+			}
 		else
 			self.DebugPrint("Action with ID " .. action.id .. " could not be find, is it valid ? Report to a dev.")
 		end
@@ -470,7 +489,8 @@ local PotionIndex = 1
 local nowPotion = 0
 self.RegisterSkill(nil, false, "LockFace") -- 自动面向
 self.RegisterSkill(nil, true, "AutoUmbralSoul") -- 自动灵极魂
-self.RegisterSkill(nil, false, "AutoLB") -- 自动灵极魂
+self.RegisterSkill(nil, false, "AutoLB") -- 自动LB
+self.RegisterSkill(nil, true, "ShortDespair") -- 短绝望循环
 local AutoAttack = ActionList:Get(5, 1).name  --自动攻击
 local sortedIds = {}  --使技能按id排列
 for id in pairs(self.Skills) do
@@ -786,8 +806,8 @@ local speed_F = 6
 local speed_S = 2.4000000953674
 local speed_W = 2.4000000953674
 
-local version = "1.99.8"
-local vlog = "W0NOXVsxLuS8mOWMlui/nOeoi+abtOaWsOa1geeoiwoyLuS/ruWkjee7neS8iueUuOa1ruepuuaJk+aWreivu+adoeWvvOiHtOWNoeS9j+eahOaDheWGtV0KW0VOXVsxLiBPcHRpbWl6ZSB0aGUgcmVtb3RlIHVwZGF0ZSBwcm9jZXNzCjIuIEZpeCB0aGUgaXNzdWUgd2hlcmUgaW50ZXJydXB0aW5nIHRoZSBmbG9hdGluZyBvZiBGUlUgY2F1c2VzIHRoZSBwcm9ncmVzcyBiYXIgdG8gZnJlZXplXQpbSlBdWzEuIOODquODouODvOODiOabtOaWsOODl+ODreOCu+OCueOBruacgOmBqeWMlgoyLiBGUlXmta7pgYrkuK3jgavooYzli5XjgYzkuK3mlq3jgZXjgozjgIHoqq3jgb/ovrzjgb/jgYzlgZzmraLjgZnjgovllY/poYzjga7kv67mraNd"
+local version = "1.99.9"
+local vlog = "W0NOXVsxLuWinuWKoOS6hue7neacm+W+queOr+eahGhvdGJhcl0KW0VOXVsxLiBBZGRlZCB0aGUgRmFzdCBEZXNwYWlyIFJvdGF0aW9uIGhvdGJhcl0KW0pQXVsxLiDntbbmnJvjg6vjg7zjg5fjga7jg5vjg4Pjg4jjg5Djg7zjgpLov73liqDjgZfjgZ9d"
 local needReload = false
 local needUpdate = false
 
@@ -2358,9 +2378,21 @@ function self.TargetSet(tag)  --目标设置器
 	end
 end
 
+local function ShortDespair()  --短绝望循环
+	if self.Skills[-4].inHotbarList and level >= 100 then
+		if fire_ice >= 1 and mp >= 800 and IsReady(Jue_Wang) then return self.JoinACR(Jue_Wang.id), target end  --绝望收尾
+		if ((fire_ice >= 1 and mp <= 0) or (fire_ice <= -1 and mp >= 800)) and Xing_Ling:IsReady() and IsReady(Xing_Ling) then self.JoinACR(Xing_Ling.id) end  --星灵
+		if Xing_Meng:IsReady() and IsReady(Xing_Meng) then self.JoinACR(Xing_Meng.id) end  --醒梦
+		if fire_ice <= -1 and Bei_Lun.highlighted == 1 and IsReady(Bei_Lun) then return self.JoinACR(Bei_Lun.id), target end  --冰悖论
+		if tongxiao >= 1 and self.BLM.Polyglot and IsReady(Yi_Yan) and not Xing_Ling:IsReady() then return self.JoinACR(Yi_Yan.id), target end  --异言填充
+		if Xing_Meng.cd >= 21  then
+			self.Skills[-4].inHotbarList = false
+		end
+	end
+end
 
 local function AOE_Combo()  --AOE循环，已适配全等级
-	if (not self.BLM.Burn) and self.BLM.AOE then
+	if (not self.BLM.Burn) and self.BLM.AOE and (not self.Skills[-4].inHotbarList) then
 		local t = nil
 		if self.Target.aoe_num >= 2 then
 			if self.BLM.Smart_Target then
@@ -2494,7 +2526,7 @@ local function AOE_Combo()  --AOE循环，已适配全等级
 end
 
 local function Polyglot_Combo()  --通晓循环，已适配全等级
-	if (not self.BLM.Burn) and self.BLM.Polyglot then
+	if (not self.BLM.Burn) and self.BLM.Polyglot and (not self.Skills[-4].inHotbarList) then
 		if  ((not self.BLM.AOE) or self.Target.aoe_num <= 1) then
 			
 			if level >= 98 then
@@ -2591,7 +2623,7 @@ local function DOT_Combo()  --dot循环，已适配全等级
 end
 
 local function Fire_Ice()  --火转冰，已适配全等级
-	if ((not self.BLM.AOE) or self.Target.aoe_num <= 1) and not self.BLM.Burn then
+	if ((not self.BLM.AOE) or self.Target.aoe_num <= 1) and (not self.BLM.Burn) and (not self.Skills[-4].inHotbarList) then
 		if level >= 100 then
 			local canuse = ((Mo_Quan.cd >= 1 and Mo_Quan.cd <= 98) or (self.BLM.Manafont == false or self.BLM.CD == false) or not IsReady(Mo_Quan)) and IsReady(Xing_Ling) and Xing_Ling:IsReady() and fire_ice >= 1 and mp < 800 and Yao_Xing.highlighted == 0
 			local canuse2 = ((Mo_Quan.cd >= 1 and Mo_Quan.cd <= 98) or (self.BLM.Manafont == false or self.BLM.CD == false) or not IsReady(Mo_Quan)) and IsReady(Xing_Ling) and Xing_Ling:IsReady() and fire_ice >= 1 and mp == 1200 and Yao_Xing.highlighted == 0 and lastcast == 25797
@@ -2625,7 +2657,7 @@ local function Fire_Ice()  --火转冰，已适配全等级
 end
 
 local function Ice_Fire()  --冰转火，已适配全等级
-	if ((not self.BLM.AOE) or self.Target.aoe_num <= 1) and not self.BLM.Burn then
+	if ((not self.BLM.AOE) or self.Target.aoe_num <= 1) and (not self.BLM.Burn) and (not self.Skills[-4].inHotbarList) then
 		if level >= 90 then
 			if fire_ice <= -1 and Xing_Ling:IsReady() and Bei_Lun.highlighted == 0 and ice_heart == 3 and mp == 10000 and IsReady(Xing_Ling) then
 				self.JoinACR(Xing_Ling.id)
@@ -2728,7 +2760,7 @@ local function Fire()  --火循环，已适配全等级
 	if fire_ice <=0 then
 		return false, nil
 	end
-	if ((not self.BLM.AOE) or self.Target.aoe_num <= 1) and not self.BLM.Burn then
+	if ((not self.BLM.AOE) or self.Target.aoe_num <= 1) and (not self.BLM.Burn) and (not self.Skills[-4].inHotbarList) then
 		if Yao_Xing.highlighted == 1 and IsReady(Yao_Xing) then return self.JoinACR(Yao_Xing.id), target end  --最大优先级，耀星
 		if fire_ice == 1 and mp >= 1600 and Fire_3.highlighted == 0 and Bei_Lun.highlighted == 1 and IsReady(Bei_Lun) then return self.JoinACR(Bei_Lun.id), target end  --进火打悖论获得火苗
 		if fire_ice == 3 and Fire_3.highlighted == 0 and mp>= 1600 and mp <= 3000 and beilun <= 3 and Bei_Lun.highlighted == 1 and IsReady(Bei_Lun) then return self.JoinACR(Bei_Lun.id), target end  --可调位置的悖论
@@ -2750,7 +2782,7 @@ local function Ice() --冰循环，已适配全等级
 	if fire_ice >=0 then
 		return false, nil
 	end
-	if ((not self.BLM.AOE) or self.Target.aoe_num <= 1) and not self.BLM.Burn then
+	if ((not self.BLM.AOE) or self.Target.aoe_num <= 1) and (not self.BLM.Burn) and (not self.Skills[-4].inHotbarList) then
 		if fire_ice == -3 and mp < 10000 and ice_heart <3 and IsReady(Ice_4) then return self.JoinACR(Ice_4.id), target end --冰4
 		if fire_ice <= -1 and (ice_heart == 3 or mp == 10000) and Bei_Lun.highlighted == 1 and IsReady(Bei_Lun) then return self.JoinACR(Bei_Lun.id), target end  --冰悖论
 		if fire_ice <= -1 and mp < 1000 and IsReady(Ice_1) and not IsReady(Ice_4) then return self.JoinACR(Ice_1.id), target end  --连冰4都没有那就打冰1吧
@@ -2760,7 +2792,7 @@ local function Ice() --冰循环，已适配全等级
 end
 
 local function Fix()  --打aoe后对循环进行修补
-	if ((not self.BLM.AOE) or self.Target.aoe_num <= 1) and not self.BLM.Burn then
+	if ((not self.BLM.AOE) or self.Target.aoe_num <= 1) and (not self.BLM.Burn) and (not self.Skills[-4].inHotbarList) then
 		if beilun >= 25 then return self.JoinACR(Yao_Xing.id), target end
 		if (fire_ice >= 1 and fire_ice <= 2) then
 			if Fire_3.highlighted == 1 and IsReady(Fire_3) then return self.JoinACR(Fire_3.id), target end
@@ -2898,13 +2930,14 @@ MainRotationList = {
 	[3] = Amplifier,
 	[4] = LeyLines,
 	[5] = Manafont,
-	[6] = AOE_Combo,
-	[7] = BURN,
-	[8] = Fire,
-	[9] = Fire_Ice,
-	[10] = Ice,
-	[11] = Ice_Fire,
-	[12] = Fix,
+	[6] = ShortDespair,
+	[7] = AOE_Combo,
+	[8] = BURN,
+	[9] = Fire,
+	[10] = Fire_Ice,
+	[11] = Ice,
+	[12] = Ice_Fire,
+	[13] = Fix,
 }
 
 
@@ -2959,7 +2992,7 @@ function self.Cast()
 	if TensorCore.mGetPlayer().alive and FFXIV_Common_BotRunning and not (Busy() or IsMounting() or IsMounted() or IsDismounting() or MIsLoading() or IsFlying() or IsDiving()) then
 		if self.HasTarget() then
 			self.TargetSet()
-			if self.BLM.AOE and self.Target.aoe_num >= 2 then
+			if (self.BLM.AOE and self.Target.aoe_num >= 2) or self.Skills[-4].inHotbarList then
 				ForceAbl = true
 			end
 			GCDSkills:clear()
