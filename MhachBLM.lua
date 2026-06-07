@@ -806,7 +806,7 @@ local speed_F = 6
 local speed_S = 2.4000000953674
 local speed_W = 2.4000000953674
 
-local version = "1.99.9"
+local version = "2.0"
 local vlog = "W0NOXVsxLuWinuWKoOS6hue7neacm+W+queOr+eahGhvdGJhcl0KW0VOXVsxLiBBZGRlZCB0aGUgRmFzdCBEZXNwYWlyIFJvdGF0aW9uIGhvdGJhcl0KW0pQXVsxLiDntbbmnJvjg6vjg7zjg5fjga7jg5vjg4Pjg4jjg5Djg7zjgpLov73liqDjgZfjgZ9d"
 local needReload = false
 local needUpdate = false
@@ -2380,6 +2380,8 @@ end
 
 local function ShortDespair()  --短绝望循环
 	if self.Skills[-4].inHotbarList and level >= 100 then
+		if Yao_Xing.highlighted == 1 and IsReady(Yao_Xing) then return self.JoinACR(Yao_Xing.id), target end  --最大优先级，耀星
+		if fire_ice >= 1 and Fire_3.highlighted == 1 and IsReady(Fire_3) then return self.JoinACR(Fire_3.id), target end  --火苗
 		if fire_ice >= 1 and mp >= 800 and IsReady(Jue_Wang) then return self.JoinACR(Jue_Wang.id), target end  --绝望收尾
 		if ((fire_ice >= 1 and mp <= 0) or (fire_ice <= -1 and mp >= 800)) and Xing_Ling:IsReady() and IsReady(Xing_Ling) then self.JoinACR(Xing_Ling.id) end  --星灵
 		if Xing_Meng:IsReady() and IsReady(Xing_Meng) then self.JoinACR(Xing_Meng.id) end  --醒梦
