@@ -775,6 +775,7 @@ local Icons = LuaPath .. [[ACR\CombatRoutines\MhachBLM\Icons\]]
 local Translation = ModulePath .. [[Translation.lua]]
 local QtSetting = ModulePath .. [[QtSetting.lua]]
 local DotSettings = ModulePath .. [[DotSettings.lua]]
+local DMU = ModulePath .. [[DMUAddleSettings.lua]]
 local defultIcon = Icons .. "disable.png"
 local MhachBLMTest = {}
 local T = {}
@@ -806,14 +807,46 @@ local speed_F = 6
 local speed_S = 2.4000000953674
 local speed_W = 2.4000000953674
 
-local version = "2.0"
-local vlog = "W0NOXVsxLuWinuWKoOS6hue7neacm+W+queOr+eahGhvdGJhcl0KW0VOXVsxLiBBZGRlZCB0aGUgRmFzdCBEZXNwYWlyIFJvdGF0aW9uIGhvdGJhcl0KW0pQXVsxLiDntbbmnJvjg6vjg7zjg5fjga7jg5vjg4Pjg4jjg5Djg7zjgpLov73liqDjgZfjgZ9d"
+local version = "2.1"
+local vlog = "W0NOXVsxLua3u+WKoOS6hkRNVeWHj+S8pOebuOWFs+iuvue9rl0KW0VOXVsxLiBBZGRlZCBETVUgZGFtYWdlIHJlZHVjdGlvbiByZWxhdGVkIHNldHRpbmdzXQpbSlBdWzEuIERNVeOBruODgOODoeODvOOCuOi7vea4m+OBq+mWouOBmeOCi+ioreWumuOCkui/veWKoOOBl+OBvuOBl+OBn10="
 local needReload = false
 local needUpdate = false
 
 local queueUnlock = {true, true, true, true ,true}
 local tempStr = {"", "", ""}  --给dot黑名单用的
 local LeyLinesPos = nil
+
+MhachBLM.DMU_Addle = {
+	Open = false,
+	Universal = true,  --决定是否影响其他法系减伤
+	Settings = {
+		[1] = {
+        time = 38.0,
+        name = "P1  |  分散分摊",
+        open = false,
+		},
+		[2] = {
+			time = 69.9,
+			name = "P1  |  第一次制裁之光+死刑",
+			open = true,
+		},
+		[3] = {
+			time = 139.5,
+			name = "P1  |  第二次制裁之光+死刑",
+			open = false,
+		},
+		[4] = {
+			time = 234.6,
+			name = "P2  |  开场AOE",
+			open = true,
+		},
+		[5] = {
+			time = 337.7,
+			name = "P2  |  一运结束AOE",
+			open = true,
+		},
+	}
+}
 --------------------------------------------------------------------------------------------------保存设置相关
 
 local function getLanguageIndex(str, list)
@@ -998,6 +1031,49 @@ local function LoadRotation()
 	end
 end
 
+local function LoadDMUAddle()
+	local tbl = FileLoad(DMU)
+	if tbl ~= nil then
+		MhachBLM.DMU_Addle.Universal = tbl.Universal
+		for i, _ in ipairs(MhachBLM.DMU_Addle.Settings) do
+			if tbl.Settings[i] ~= nil then
+				MhachBLM.DMU_Addle.Settings[i] = tbl.Settings[i]
+			end
+		end
+	end
+end
+
+local function SaveDMUAddle()
+	local tbl = {}
+	tbl.Universal = MhachBLM.DMU_Addle.Universal
+	tbl.Settings = MhachBLM.DMU_Addle.Settings
+	FileSave(DMU, tbl)
+end
+
+local function CalAddleTime(index)  --验证减伤时间间隔防止cd没好
+	local tNow = MhachBLM.DMU_Addle.Settings[index].time
+	local threshold = 85
+    -- 关闭时间相近的项
+    for i, v in ipairs(MhachBLM.DMU_Addle.Settings) do
+        if i ~= index and math.abs(v.time - tNow) < threshold then
+            v.open = false
+        end
+    end
+end
+
+local function formatNumberWithSpaces(number, targetLength)
+	-- 将数字转换为字符串
+    local str = tostring(number)
+    local currentLength = #str
+    
+    -- 如果当前长度小于目标长度，则在后面添加空格
+    if currentLength < targetLength then
+        local spacesNeeded = targetLength - currentLength
+        str = str .. string.rep(" ", spacesNeeded)
+    end
+    
+    return str
+end
 --------------------------------------------------------------------------------------------------------------------------------   键位设置
 
 self.KeyCodes =
@@ -3093,6 +3169,7 @@ function self.Draw()
 				qtUI = false
 				blacklistUI = false
 				supUI = false
+				MhachBLM.DMU_Addle.Open = false
 			end
 			GUI:SameLine()
 			if settingUI then
@@ -3109,6 +3186,7 @@ function self.Draw()
 				qtUI = false
 				blacklistUI = false
 				supUI = false
+				MhachBLM.DMU_Addle.Open = false
 			end
 			GUI:SameLine()
 			if hotbarUI then
@@ -3125,6 +3203,7 @@ function self.Draw()
 				qtUI = true
 				blacklistUI = false
 				supUI = false
+				MhachBLM.DMU_Addle.Open = false
 			end
 			GUI:SameLine()
 			if qtUI then
@@ -3141,9 +3220,27 @@ function self.Draw()
 				qtUI = false
 				blacklistUI = true
 				supUI = false
+				MhachBLM.DMU_Addle.Open = false
 			end
 			GUI:SameLine()
 			if blacklistUI then
+				GUI:PopStyleColor(1)
+			end
+
+			if MhachBLM.DMU_Addle.Open then
+				GUI:PushStyleColor(GUI.Col_Text, 1, 0, 0, 1)
+			end
+			GUI:Button("DMU减伤设置" , 100, 20)
+			if GUI:IsItemClicked(0) then
+				settingUI = false
+				hotbarUI = false
+				qtUI = false
+				blacklistUI = false
+				supUI = false
+				MhachBLM.DMU_Addle.Open = true
+			end
+			GUI:SameLine()
+			if MhachBLM.DMU_Addle.Open then
 				GUI:PopStyleColor(1)
 			end
 
@@ -3157,6 +3254,7 @@ function self.Draw()
 				qtUI = false
 				blacklistUI = false
 				supUI = true
+				MhachBLM.DMU_Addle.Open = false
 			end
 			if supUI then
 				GUI:PopStyleColor(1)
@@ -3491,6 +3589,29 @@ function self.Draw()
 				end
 			end
 
+			if MhachBLM.DMU_Addle.Open then
+				GUI:Spacing()
+				GUI:Text("搭配我的付费绝妖轴使用|This was created for my paid DMU Reactions.")
+				local value1, changed1 = GUI:Checkbox("做用到其他法系职业,若关闭,则其他法系职业使用Muai职能减伤", MhachBLM.DMU_Addle.Universal)
+				if changed1 then
+					MhachBLM.DMU_Addle.Universal = value1
+					SaveDMUAddle()
+				end
+				GUI:Separator()
+				local value = {}
+				local changed = {}
+				for i, _ in ipairs(MhachBLM.DMU_Addle.Settings) do
+					value[i], changed[i] = GUI:Checkbox(formatNumberWithSpaces(MhachBLM.DMU_Addle.Settings[i].time, 10) .. " " .. MhachBLM.DMU_Addle.Settings[i].name, MhachBLM.DMU_Addle.Settings[i].open)
+					if changed[i] then
+						MhachBLM.DMU_Addle.Settings[i].open = value[i]
+						if MhachBLM.DMU_Addle.Settings[i].open then
+							CalAddleTime(i)
+						end
+						SaveDMUAddle()
+					end
+				end
+			end
+
 			if supUI then
 				GUI:PushStyleColor(GUI.Col_Text, 1, 1, 0, 1)
 				GUI:BulletText(T["Sup"][2][Language])
@@ -3777,6 +3898,7 @@ function self.OnLoad()
 	LoadHotBar()
 	LoadQt()
 	LoadDot()
+	LoadDMUAddle()
 	if self.Settings.AutoUpdate then
 		CheckUpdate()
 		if needUpdate and UpdateFile() then
