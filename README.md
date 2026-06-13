@@ -1,5 +1,10 @@
 土制黑魔ACR   `MhachBLM`：
 
+v2.2更新
+
+	1.使锁定面向的API与TensorCore的相同(TensorCore.API.TensorACR.setLockFaceHeading(angle)等),这意味着对TensorACR生效的锁面向也同样对MhachBLM生效,Anyone的轴也能直接控制MhachBLM的面向了!
+	2.增加了新的API: MhachBLM.SetAoeNum(num, seconds),你可以让ACR在一定时间内认为敌人数量为你输入的值.AOE开启和智能目标关闭时生效
+
 v1.99.9更新
 
 	1.增加短绝望HotBar,开启后会使用醒梦星灵切换冰火,冰状态使用冰悖论,回蓝够了后切火使用绝望,以此往复，醒梦没了自动关闭HotBar,代码调用为 MhachBLM.UseHotbarSkill(-4)  MhachBLM.CancelHotbarSkill(-4)
