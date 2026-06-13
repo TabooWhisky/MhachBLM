@@ -64,6 +64,8 @@ MhachBLM = {
 
 	Target = {
 		aoe_num = 0,
+		temp_aoe_num = 2,
+		change_time = 0,
 	},
 
 	isPVE = true,
@@ -668,7 +670,7 @@ for i = 1, #b64chars do
 end
 
 -- 将字符串编码为 Base64
-local function stringToBase64(str)
+--[[local function stringToBase64(str)
     local result = {}
     local n = #str
     local i = 1
@@ -697,7 +699,7 @@ local function stringToBase64(str)
     end
 
     return table.concat(result)
-end
+end]]
 
 -- 将 Base64 解码为字符串（自动忽略换行、空格等非 Base64 字符）
 local function base64ToString(b64)
@@ -758,14 +760,11 @@ local PlayerSkills = Queue:new()  --用户自定义循环列表
 local HotbarSkills = Queue:new()  --热键栏技能队列
 local GCDSkills = Queue:new()
 local OGCDSkills = Queue:new()
-
-local HoldList = {}  --hold技能列表
 local lastTime = 0
 local nowTime = 0
 local fpsTime = 0
 local LuaPath = GetLuaModsPath()
 local ModulePath = LuaPath .. [[ACR\CombatRoutines\MhachBLM\]]
-local Module = ModulePath .. [[Test.lua]]
 local Rotation = ModulePath .. [[MhachBLMRotation.lua]]
 local Data = ModulePath .. [[Data\]]
 local Skills = Data .. [[SkillsData.lua]]
@@ -777,7 +776,6 @@ local QtSetting = ModulePath .. [[QtSetting.lua]]
 local DotSettings = ModulePath .. [[DotSettings.lua]]
 local DMU = ModulePath .. [[DMUAddleSettings.lua]]
 local defultIcon = Icons .. "disable.png"
-local MhachBLMTest = {}
 local T = {}
 local MainRotationList = {}
 local Language = "CN"
@@ -807,11 +805,11 @@ local speed_F = 6
 local speed_S = 2.4000000953674
 local speed_W = 2.4000000953674
 
-local version = "2.1"
-local vlog = "W0NOXVsxLua3u+WKoOS6hkRNVeWHj+S8pOebuOWFs+iuvue9rl0KW0VOXVsxLiBBZGRlZCBETVUgZGFtYWdlIHJlZHVjdGlvbiByZWxhdGVkIHNldHRpbmdzXQpbSlBdWzEuIERNVeOBruODgOODoeODvOOCuOi7vea4m+OBq+mWouOBmeOCi+ioreWumuOCkui/veWKoOOBl+OBvuOBl+OBn10="
+local version = "2.2"
+local vlog = "W0NOXVsxLuWinuWKoOS6hkRNVeWHj+S8pOiHs1A0CjIu5L2/6ZSB5a6a6Z2i5ZCR55qEQVBJ5LiOVGVuc29yQ29yZeeahOebuOWQjChUZW5zb3JDb3JlLkFQSS5UZW5zb3JBQ1Iuc2V0TG9ja0ZhY2VIZWFkaW5nKGFuZ2xlKeetiSkK6L+Z5oSP5ZGz552A5a+5VGVuc29yQUNS55Sf5pWI55qE6ZSB6Z2i5ZCR5Lmf5ZCM5qC35a+5TWhhY2hCTE3nlJ/mlYgsQW55b25l55qE6L205Lmf6IO955u05o6l5o6n5Yi2TWhhY2hCTE3nmoTpnaLlkJHkuoYhCjMu5aKe5Yqg5LqG5paw55qEQVBJOiBNaGFjaEJMTS5TZXRBb2VOdW0obnVtLCBzZWNvbmRzKSzkvaDlj6/ku6XorqlBQ1LlnKjkuIDlrprml7bpl7TlhoXorqTkuLrmlYzkurrmlbDph4/kuLrkvaDovpPlhaXnmoTlgLwuCkFPReW8gOWQr+WSjOaZuuiDveebruagh+WFs+mXreaXtueUn+aViF0KW0VOXVsxLiBBZGQgRE1VIGRhbWFnZSByZWR1Y3Rpb24gdG8gUDQKMi4gTWFrZSB0aGUgQVBJIHRoYXQgbG9ja3MgZmFjaW5nIHRoZSBzYW1lIGFzIFRlbnNvckNvcmUgKFRlbnNvckNvcmUuQVBJLlRlbnNvckFDUi5zZXRMb2NrRmFjZUhlYWRpbmcoYW5nbGUpLCBldGMuKQpUaGlzIG1lYW5zIHRoYXQgdGhlIGxvY2tlZCBmYWNpbmcgdGhhdCB3b3JrcyBvbiBUZW5zb3JBQ1IgYWxzbyB3b3JrcyBvbiBNaGFjaEJMTSwgYW5kIHRoZSByZWFjdGlvbnMgb2YgQW55b25lIGNhbiBkaXJlY3RseSBjb250cm9sIHRoZSBmYWNpbmcgb2YgTWhhY2hCTE0hCjMuIEFkZGVkIGEgbmV3IEFQSTogTWhhY2hCTE0uU2V0QW9lTnVtKG51bSwgc2Vjb25kcyksIHdoaWNoIGxldHMgeW91IG1ha2UgQUNSIHRoaW5rIHRoZSBudW1iZXIgb2YgZW5lbWllcyBpcyB0aGUgdmFsdWUgeW91IGlucHV0IGZvciBhIGNlcnRhaW4gcGVyaW9kIG9mIHRpbWUuCkVmZmVjdGl2ZSB3aGVuIEFPRSBpcyBvbiBhbmQgc21hcnQgdGFyZ2V0aW5nIGlzIG9mZl0KW0pQXVsxLiBETVXjga7jg4Djg6Hjg7zjgrjou73muJvjgYxQNOOBvuOBp+Wil+WKoOOBl+OBvuOBl+OBnwoyLiDjg63jg4Pjgq/lkJHjgY3nlKjjga5BUEnjga9UZW5zb3JDb3Jl44Go5ZCM44GY77yIVGVuc29yQ29yZS5BUEkuVGVuc29yQUNSLnNldExvY2tGYWNlSGVhZGluZyhhbmdsZSnjgarjganvvIkK44GT44KM44Gv44CBVGVuc29yQUNS44Gr6YGp55So44GV44KM44KL44Ot44OD44Kv5ZCR44GN44GMTWhhY2hCTE3jgavjgoLlkIzmp5jjgavmnInlirnjgafjgYLjgorjgIFBbnlvbmXjga7jgr/jgqTjg6Djg6njgqTjg7PjgafjgoLnm7TmjqVNaGFjaEJMTeOBruWQkeOBjeOCkuWItuW+oeOBp+OBjeOCi+OBk+OBqOOCkuaEj+WRs+OBl+OBvuOBme+8gQozLiDmlrDjgZfjgYRBUEnjgpLov73liqDjgZfjgb7jgZfjgZ86IE1oYWNoQkxNLlNldEFvZU51bShudW0sIHNlY29uZHMp44CB44GT44KM44KS5L2/44GI44GwQUNS44GM5LiA5a6a5pmC6ZaT5pW144Gu5pWw44KS44GC44Gq44Gf44GM5YWl5Yqb44GX44Gf5YCk44Gg44Go6KqN6K2Y44GZ44KL44KI44GG44Gr44Gn44GN44G+44GZLgpBT0XjgYzjgqrjg7Pjgafjgrnjg57jg7zjg4jjgr/jg7zjgrLjg4Pjg4jjgYzjgqrjg5Xjga7jgajjgY3jgavmnInlirld"
 local needReload = false
 local needUpdate = false
-
+local aoeTime = 0  --用来计时API改变targetnum时间
 local queueUnlock = {true, true, true, true ,true}
 local tempStr = {"", "", ""}  --给dot黑名单用的
 local LeyLinesPos = nil
@@ -821,9 +819,9 @@ MhachBLM.DMU_Addle = {
 	Universal = true,  --决定是否影响其他法系减伤
 	Settings = {
 		[1] = {
-        time = 38.0,
-        name = "P1  |  分散分摊",
-        open = false,
+			time = 38.0,
+			name = "P1  |  分散分摊",
+			open = false,
 		},
 		[2] = {
 			time = 69.9,
@@ -831,18 +829,73 @@ MhachBLM.DMU_Addle = {
 			open = true,
 		},
 		[3] = {
-			time = 139.5,
+			time = 139.4,
 			name = "P1  |  第二次制裁之光+死刑",
 			open = false,
 		},
 		[4] = {
-			time = 234.6,
+			time = 235.2,
 			name = "P2  |  开场AOE",
 			open = true,
 		},
 		[5] = {
-			time = 337.7,
-			name = "P2  |  一运结束AOE",
+			time = 258.5,
+			name = "P2  |  1,2次咏唱危机",
+			open = false,
+		},
+		[6] = {
+			time = 278.7,
+			name = "P2  |  3,4次咏唱危机",
+			open = false,
+		},
+		[7] = {
+			time = 299.8,
+			name = "P2  |  5,6次咏唱危机",
+			open = false,
+		},
+		[8] = {
+			time = 320.2,
+			name = "P2  |  7,8次咏唱危机",
+			open = false,
+		},
+		[9] = {
+			time = 340.6,
+			name = "P2  |  一运结束大AOE",
+			open = true,
+		},
+		[10] = {
+			time = 375.9,
+			name = "P2  |  双T死刑",
+			open = false,
+		},
+		[11] = {
+			time = 448.6,
+			name = "P3  |  一运开场AOE",
+			open = true,
+		},
+		[12] = {
+			time = 480.0,
+			name = "P3  |  艾克斯迪司-第一次暴雷",
+			open = false,
+		},
+		[13] = {
+			time = 538.6,
+			name = "P3  |  艾克斯迪司-第二次暴雷",
+			open = true,
+		},
+		[14] = {
+			time = 555.8,
+			name = "P3  |  艾克斯迪司-第三次暴雷",
+			open = false,
+		},
+		[15] = {
+			time = 638.6,
+			name = "P3  |  艾克斯迪司-第五次暴雷",
+			open = true,
+		},
+		[16] = {
+			time = 895.1,
+			name = "P4  |  扑腾腾究极",
 			open = true,
 		},
 	}
@@ -1037,7 +1090,9 @@ local function LoadDMUAddle()
 		MhachBLM.DMU_Addle.Universal = tbl.Universal
 		for i, _ in ipairs(MhachBLM.DMU_Addle.Settings) do
 			if tbl.Settings[i] ~= nil then
-				MhachBLM.DMU_Addle.Settings[i] = tbl.Settings[i]
+				if tbl.Settings[i].time == MhachBLM.DMU_Addle.Settings[i].time then
+					MhachBLM.DMU_Addle.Settings[i] = tbl.Settings[i]
+				end
 			end
 		end
 	end
@@ -1655,7 +1710,6 @@ end
 -------------------------------------------------------用户变量本地存储优化性能
 local player = nil
 local playerid = nil
-local incombat = nil
 local moving = nil
 local fire_ice = nil
 local ice_heart = nil
@@ -1663,14 +1717,12 @@ local tongxiao = nil
 local beilun = nil
 local mp = 0
 local lastcast = nil
-local alive = nil
 local tongxiaoTime = nil
 local level = nil
 
 local function SetValue()  --为本地变量赋值
 	player = TensorCore.mGetPlayer()
 	playerid = player.id
-	incombat = player.incombat
 	moving = player:IsMoving()
 	fire_ice = player.gauge[2]
 	ice_heart = player.gauge[1]
@@ -1678,7 +1730,6 @@ local function SetValue()  --为本地变量赋值
 	beilun = player.gauge[3]
 	mp = player.mp.current
 	lastcast = player.castinginfo.lastcastid
-	alive = player.alive
 	tongxiaoTime = player.gaugetest[2] --剩余秒数*4
 	level = player.level
 	target = TensorCore.mGetTarget()
@@ -1798,18 +1849,24 @@ function self.PlayerComboEmpty() --返回用户循环是否为空
 end
 ---------------------------------------------------------------------------------------
 local function LockFace()  --锁定面向
-	if player:GetSpeed().Forward > 0 and player:GetSpeed().Forward < 9 then  --记录原始速度，太快太慢都不记录
+	if player:GetSpeed().Forward > 0 and player:GetSpeed().Forward < 9 and player:GetSpeed().Forward ~= speed_F then  --记录原始速度，太快太慢都不记录
 		speed_B = player:GetSpeed().Backward
 		speed_F = player:GetSpeed().Forward
 		speed_S = player:GetSpeed().Strafe
 		speed_W = player:GetSpeed().Walk
 	end
 	if self.Skills[-2].inHotbarList then
-		if Fire_4.cd >= 0 and Fire_4.cd <= 0.5 and not (GUI:IsKeyDown(87) or GUI:IsKeyDown(65) or GUI:IsKeyDown(83) or GUI:IsKeyDown(63)) then
+		if not (GUI:IsKeyDown(87) or GUI:IsKeyDown(65) or GUI:IsKeyDown(83) or GUI:IsKeyDown(68) or (GUI:IsMouseDown(0) and GUI:IsMouseDown(1))) then
 			player:SetSpeed(1, 0, 0, 0, 0)
 			if player:GetSpeed().Forward == 0 then
-				SendTextCommand("/automove")
+				SendTextCommand("/automove on")
+				SendTextCommand("/automove off")
+			else
+				SendTextCommand("/automove off")
 			end
+		else
+			SendTextCommand("/automove off")
+			player:SetSpeed(1, speed_F, speed_B, speed_S, speed_W)
 		end
 		
 		if faceX ~= nil and faceY ~= nil and faceZ ~= nil then
@@ -1817,16 +1874,16 @@ local function LockFace()  --锁定面向
 		elseif faceX ~= nil and faceY == nil and faceZ == nil then
 			player:SetFacing(faceX)--面向镜头
 		else
-			--[[local x = 2 * player.camera.x - player.pos.x
-			local y = player.pos.y
-			local z = 2 * player.camera.z - player.pos.z]]
 			player:SetFacing(player.camera.h - math.pi)--面向镜头
 		end
 	end
-	if (GUI:IsKeyDown(87) or GUI:IsKeyDown(65) or GUI:IsKeyDown(83) or GUI:IsKeyDown(68)) and player:GetSpeed().Forward == 0 then
+
+	if (not self.Skills[-2].inHotbarList) and player:GetSpeed().Forward == 0 then
+		SendTextCommand("/automove off")
 		player:SetSpeed(1, speed_F, speed_B, speed_S, speed_W)
 	end
 end
+
 
 function self.LockFaceOn(x, y, z)
 	faceX = x or nil
@@ -1837,6 +1894,7 @@ end
 
 function self.LockFaceOff()
 	self.Skills[-2].inHotbarList = false
+	SendTextCommand("/automove off")
 	faceX = nil
 	faceY = nil
 	faceZ = nil
@@ -1848,6 +1906,43 @@ end
 	faceY = y
 	faceZ = z
 end]]
+
+local function StandardTensorLock()  --标准化Tensor锁面向函数
+	function TensorCore.API.TensorACR.setLockFaceHeading(angle)
+		if TensorCore.mGetPlayer().job == 25 then
+			faceX = angle
+		else
+			TensorCore.API.TensorACR.setLockFaceHeading = nil
+			TensorCore.API.TensorACR.setLockFaceHeading(angle)
+		end
+	end
+
+	function TensorCore.API.TensorACR.toggleLockFace(bool)
+		if TensorCore.mGetPlayer().job == 25 then
+			if bool then
+				self.Skills[-2].inHotbarList = true
+			else
+				self.LockFaceOff()
+			end
+		else
+			TensorCore.API.TensorACR.toggleLockFace = nil
+			TensorCore.API.TensorACR.toggleLockFace(bool)
+		end
+	end
+
+	function TensorCore.API.TensorACR.setHardLockFace(bool)
+		if TensorCore.mGetPlayer().job == 25 then
+			return
+		else
+			TensorCore.API.TensorACR.setHardLockFace = nil
+			TensorCore.API.TensorACR.setHardLockFace(bool)
+		end
+	end
+	d("[MhachBLM] 已将面向函数设置为Tensor系列面向函数格式")
+end
+
+
+
 -----------------------------------------------------------------------------------------
 local function AutoUmbralSoul()  --自动灵极魂
 	if self.Skills[-1].inHotbarList and level >= 35 then
@@ -2125,7 +2220,7 @@ local function IsReady(action)  --检查技能能否可以进入技能队列
 	if action.id == 846 then
 		for _, value in ipairs(Potions) do
 			if value ~= 0 then
-				if TensorCore.getItem(value) ~= nil then
+				if TensorCore.getItem(value) ~= nil and self.Skills[action.id].holdTime <= 0 then
 					return true
 				end
 			end	
@@ -2320,20 +2415,30 @@ end
 local function UpdateTimer()
 	lastTime = nowTime
 	nowTime = Now()
-	fpsTime = (nowTime - lastTime)/1000
+	fpsTime = (nowTime - lastTime)/1000  --秒
 	if fpsTime > 100 then  --去掉初始计算帧
 		fpsTime = 0
 	end
 	for _, id in ipairs(sortedIds) do
 		local skill = self.Skills[id]
-		skill.holdTime = skill.holdTime - fpsTime
-		skill.delayTime = skill.delayTime - fpsTime
-		if skill.holdTime < 0 then
+		if skill.holdTime > 0 then
+			skill.holdTime = skill.holdTime - fpsTime
+		elseif skill.holdTime < 0 then
 			skill.holdTime = 0
 		end
-		if skill.delayTime < 0 then
+		if skill.delayTime > 0 then
+			skill.delayTime = skill.delayTime - fpsTime
+		elseif skill.delayTime < 0 then
 			skill.delayTime = 0
 		end
+	end
+	if self.Target.change_time > 0 then
+		self.Target.change_time = self.Target.change_time - fpsTime
+	elseif self.Target.change_time < 0 then
+		self.Target.change_time = 0
+	end
+	if self.Target.change_time ~= 0 and not TensorCore.mGetPlayer().incombat then
+		self.Target.change_time = 0
 	end
 
 	if not GCDSkills:isEmpty() then
@@ -2444,13 +2549,17 @@ end
 
 function self.TargetSet(tag)  --目标设置器
 	tag = tag or "Default"
-	if self.HasTarget() then
-		enemys = TensorCore.entityList("alive,attackable,incombat,maxdistance=25")
-		if enemys then
-			self.Target.aoe_num = FindTargetsNum(enemys)
-		end
+	if self.Target.change_time > 0 then
+		self.Target.aoe_num = self.Target.temp_aoe_num
 	else
-		self.Target.aoe_num = 0
+		if self.HasTarget() then
+			enemys = TensorCore.entityList("alive,attackable,incombat,maxdistance=25.5")
+			if enemys then
+				self.Target.aoe_num = FindTargetsNum(enemys)
+			end
+		else
+			self.Target.aoe_num = 0
+		end
 	end
 end
 
@@ -2502,12 +2611,9 @@ local function AOE_Combo()  --AOE循环，已适配全等级
 				end
 				if ice_heart == 3 and Xing_Ling:IsReady() and IsReady(Xing_Ling) then self.JoinACR(Xing_Ling.id) end
 			end
-
-
-
 		end
 		if level >= 30 then
-			if mp <800 and fire_ice >= 1 and IsReady(Mo_Quan) and Mo_Quan.cd <= 1 and self.BLM.Manafont == true and self.BLM.CD == true then
+			if mp <800 and fire_ice >= 1 and IsReady(Mo_Quan) and Mo_Quan.cd <= 1 and self.BLM.Manafont and self.BLM.CD  then
 				self.JoinACR(Mo_Quan.id)
 			end
 		end
@@ -3062,6 +3168,12 @@ function  self.debugQueue()
 	end
 end
 
+function self.SetAoeNum(num, seconds)  --设置aoe目标数量
+	if seconds > 0 then
+		self.Target.temp_aoe_num = num
+		self.Target.change_time = seconds
+	end
+end
 --技能逻辑----------------------------------------------------------------------------------------------------------------------
 function self.Cast()
 	--[[if MhachBLMRotation ~= nil then
@@ -3913,6 +4025,7 @@ function self.OnLoad()
 	else
 		d("模型加载失败，请重新加载或检查文件完整性！")
 	end]]
+	StandardTensorLock()
 end
 
 function self.OnUpdate(event, tickcount)
