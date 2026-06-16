@@ -805,7 +805,7 @@ local speed_F = 6
 local speed_S = 2.4000000953674
 local speed_W = 2.4000000953674
 
-local version = "2.3"
+local version = "2.3.1"
 local vlog = "W0NOXVsxLuWinuWKoOS6hkRNVeWHj+S8pOiHs1A1CjIu5L2/6ZSB5a6a6Z2i5ZCR55qEQVBJ5LiOVGVuc29yQ29yZeeahOebuOWQjChUZW5zb3JDb3JlLkFQSS5UZW5zb3JBQ1Iuc2V0TG9ja0ZhY2VIZWFkaW5nKGFuZ2xlKeetiSkK6L+Z5oSP5ZGz552A5a+5VGVuc29yQUNS55Sf5pWI55qE6ZSB6Z2i5ZCR5Lmf5ZCM5qC35a+5TWhhY2hCTE3nlJ/mlYgsQW55b25l55qE6L205Lmf6IO955u05o6l5o6n5Yi2TWhhY2hCTE3nmoTpnaLlkJHkuoYhCjMu5aKe5Yqg5LqG5paw55qEQVBJOiBNaGFjaEJMTS5TZXRBb2VOdW0obnVtLCBzZWNvbmRzKSzkvaDlj6/ku6XorqlBQ1LlnKjkuIDlrprml7bpl7TlhoXorqTkuLrmlYzkurrmlbDph4/kuLrkvaDovpPlhaXnmoTlgLwuCkFPReW8gOWQr+WSjOaZuuiDveebruagh+WFs+mXreaXtueUn+aViF0KW0VOXVsxLiBBZGQgRE1VIGRhbWFnZSByZWR1Y3Rpb24gdG8gUDUKMi4gTWFrZSB0aGUgQVBJIHRoYXQgbG9ja3MgZmFjaW5nIHRoZSBzYW1lIGFzIFRlbnNvckNvcmUgKFRlbnNvckNvcmUuQVBJLlRlbnNvckFDUi5zZXRMb2NrRmFjZUhlYWRpbmcoYW5nbGUpLCBldGMuKQpUaGlzIG1lYW5zIHRoYXQgdGhlIGxvY2tlZCBmYWNpbmcgdGhhdCB3b3JrcyBvbiBUZW5zb3JBQ1IgYWxzbyB3b3JrcyBvbiBNaGFjaEJMTSwgYW5kIHRoZSByZWFjdGlvbnMgb2YgQW55b25lIGNhbiBkaXJlY3RseSBjb250cm9sIHRoZSBmYWNpbmcgb2YgTWhhY2hCTE0hCjMuIEFkZGVkIGEgbmV3IEFQSTogTWhhY2hCTE0uU2V0QW9lTnVtKG51bSwgc2Vjb25kcyksIHdoaWNoIGxldHMgeW91IG1ha2UgQUNSIHRoaW5rIHRoZSBudW1iZXIgb2YgZW5lbWllcyBpcyB0aGUgdmFsdWUgeW91IGlucHV0IGZvciBhIGNlcnRhaW4gcGVyaW9kIG9mIHRpbWUuCkVmZmVjdGl2ZSB3aGVuIEFPRSBpcyBvbiBhbmQgc21hcnQgdGFyZ2V0aW5nIGlzIG9mZl0KW0pQXVsxLiBETVXjga7jg4Djg6Hjg7zjgrjou73muJvjgYxQNeOBvuOBp+Wil+WKoOOBl+OBvuOBl+OBnwoyLiDjg63jg4Pjgq/lkJHjgY3nlKjjga5BUEnjga9UZW5zb3JDb3Jl44Go5ZCM44GY77yIVGVuc29yQ29yZS5BUEkuVGVuc29yQUNSLnNldExvY2tGYWNlSGVhZGluZyhhbmdsZSnjgarjganvvIkK44GT44KM44Gv44CBVGVuc29yQUNS44Gr6YGp55So44GV44KM44KL44Ot44OD44Kv5ZCR44GN44GMTWhhY2hCTE3jgavjgoLlkIzmp5jjgavmnInlirnjgafjgYLjgorjgIFBbnlvbmXjga7jgr/jgqTjg6Djg6njgqTjg7PjgafjgoLnm7TmjqVNaGFjaEJMTeOBruWQkeOBjeOCkuWItuW+oeOBp+OBjeOCi+OBk+OBqOOCkuaEj+WRs+OBl+OBvuOBme+8gQozLiDmlrDjgZfjgYRBUEnjgpLov73liqDjgZfjgb7jgZfjgZ86IE1oYWNoQkxNLlNldEFvZU51bShudW0sIHNlY29uZHMp44CB44GT44KM44KS5L2/44GI44GwQUNS44GM5LiA5a6a5pmC6ZaT5pW144Gu5pWw44KS44GC44Gq44Gf44GM5YWl5Yqb44GX44Gf5YCk44Gg44Go6KqN6K2Y44GZ44KL44KI44GG44Gr44Gn44GN44G+44GZLgpBT0XjgYzjgqrjg7Pjgafjgrnjg57jg7zjg4jjgr/jg7zjgrLjg4Pjg4jjgYzjgqrjg5Xjga7jgajjgY3jgavmnInlirld"
 local needReload = false
 local needUpdate = false
@@ -1600,21 +1600,21 @@ local function CheckUpdate()  --检查更新
 		-- 使用result
 		if result ~= nil and result ~= "" then
 			if VersionCompare(result, version) then
-				self.DebugPrint2("Latest version:" .. result, nil, 3)
+				self.DebugPrint2("Latest version:" .. result, nil, 0)--3
 				needUpdate = true
 				return 1
 			else
-				self.DebugPrint2("No updates available", nil, 5)
+				self.DebugPrint2("No updates available", nil, 0)--5
 				needUpdate = false
 				return 0
 			end
 		else
-			self.DebugPrint2("Failed to connect to GitHub!", "{color:255,0,0}", 11)
+			self.DebugPrint2("Failed to connect to GitHub!", "{color:255,0,0}", 0)--11
 			needUpdate = false
 			return -1
 		end
 	else
-		self.DebugPrint2("Your computer needs to support PowerShell!", "{color:255,0,0}", 11)
+		self.DebugPrint2("Your computer needs to support PowerShell!", "{color:255,0,0}", 0)--11
 		needUpdate = false
 		return -1
 	end
@@ -1639,10 +1639,10 @@ local function UpdateFile()
 	
     -- 下载文件
     local function downloadFile(url, destination)
-        self.DebugPrint2("Downloading...", nil, 3)
+        self.DebugPrint2("Downloading...", nil, 0)--3
         local cmd = 'curl -L -o "' .. destination .. '" "' .. url .. '"'
         runCommand(cmd)
-		self.DebugPrint2("Download to " .. destination, nil, 3)
+		self.DebugPrint2("Download to " .. destination, nil, 0)--3
     end
     -- 清理并创建临时目录
     FolderDelete(tempPath)
@@ -1653,13 +1653,13 @@ local function UpdateFile()
 
     -- 检查下载是否成功
     if not io.open(zipFilePath) then
-		self.DebugPrint2("Download Failed!!!", "{color:255,0,0}", 11)
+		self.DebugPrint2("Download Failed!!!", "{color:255,0,0}", 0)--11
         return false
     end
 
     -- 解压 Zip 文件
     runCommand('powershell -Command "Expand-Archive -Path \'' .. zipFilePath .. '\' -DestinationPath \'' .. extractPath .. '\'"')
-	self.DebugPrint2("Updating...", nil, 3)
+	self.DebugPrint2("Updating...", nil, 0)--3
 
     local excludeFiles = {  --排除在外的文件名
         ".gitignore",
@@ -1713,7 +1713,7 @@ local function UpdateFile()
 		return true
     end
     if copyFiles(exPath, replacePath) then
-		self.DebugPrint2("Update Successs!Now Reload!", nil, 3)
+		self.DebugPrint2("Update Successs!Now Reload!", nil, 0)--3
 		if FolderExists(tempPath) then
 			FolderDelete(tempPath)
 		end
