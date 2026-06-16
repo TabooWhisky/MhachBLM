@@ -805,7 +805,7 @@ local speed_F = 6
 local speed_S = 2.4000000953674
 local speed_W = 2.4000000953674
 
-local version = "2.3.1"
+local version = "2.3.2"
 local vlog = "W0NOXVsxLuWinuWKoOS6hkRNVeWHj+S8pOiHs1A1CjIu5L2/6ZSB5a6a6Z2i5ZCR55qEQVBJ5LiOVGVuc29yQ29yZeeahOebuOWQjChUZW5zb3JDb3JlLkFQSS5UZW5zb3JBQ1Iuc2V0TG9ja0ZhY2VIZWFkaW5nKGFuZ2xlKeetiSkK6L+Z5oSP5ZGz552A5a+5VGVuc29yQUNS55Sf5pWI55qE6ZSB6Z2i5ZCR5Lmf5ZCM5qC35a+5TWhhY2hCTE3nlJ/mlYgsQW55b25l55qE6L205Lmf6IO955u05o6l5o6n5Yi2TWhhY2hCTE3nmoTpnaLlkJHkuoYhCjMu5aKe5Yqg5LqG5paw55qEQVBJOiBNaGFjaEJMTS5TZXRBb2VOdW0obnVtLCBzZWNvbmRzKSzkvaDlj6/ku6XorqlBQ1LlnKjkuIDlrprml7bpl7TlhoXorqTkuLrmlYzkurrmlbDph4/kuLrkvaDovpPlhaXnmoTlgLwuCkFPReW8gOWQr+WSjOaZuuiDveebruagh+WFs+mXreaXtueUn+aViF0KW0VOXVsxLiBBZGQgRE1VIGRhbWFnZSByZWR1Y3Rpb24gdG8gUDUKMi4gTWFrZSB0aGUgQVBJIHRoYXQgbG9ja3MgZmFjaW5nIHRoZSBzYW1lIGFzIFRlbnNvckNvcmUgKFRlbnNvckNvcmUuQVBJLlRlbnNvckFDUi5zZXRMb2NrRmFjZUhlYWRpbmcoYW5nbGUpLCBldGMuKQpUaGlzIG1lYW5zIHRoYXQgdGhlIGxvY2tlZCBmYWNpbmcgdGhhdCB3b3JrcyBvbiBUZW5zb3JBQ1IgYWxzbyB3b3JrcyBvbiBNaGFjaEJMTSwgYW5kIHRoZSByZWFjdGlvbnMgb2YgQW55b25lIGNhbiBkaXJlY3RseSBjb250cm9sIHRoZSBmYWNpbmcgb2YgTWhhY2hCTE0hCjMuIEFkZGVkIGEgbmV3IEFQSTogTWhhY2hCTE0uU2V0QW9lTnVtKG51bSwgc2Vjb25kcyksIHdoaWNoIGxldHMgeW91IG1ha2UgQUNSIHRoaW5rIHRoZSBudW1iZXIgb2YgZW5lbWllcyBpcyB0aGUgdmFsdWUgeW91IGlucHV0IGZvciBhIGNlcnRhaW4gcGVyaW9kIG9mIHRpbWUuCkVmZmVjdGl2ZSB3aGVuIEFPRSBpcyBvbiBhbmQgc21hcnQgdGFyZ2V0aW5nIGlzIG9mZl0KW0pQXVsxLiBETVXjga7jg4Djg6Hjg7zjgrjou73muJvjgYxQNeOBvuOBp+Wil+WKoOOBl+OBvuOBl+OBnwoyLiDjg63jg4Pjgq/lkJHjgY3nlKjjga5BUEnjga9UZW5zb3JDb3Jl44Go5ZCM44GY77yIVGVuc29yQ29yZS5BUEkuVGVuc29yQUNSLnNldExvY2tGYWNlSGVhZGluZyhhbmdsZSnjgarjganvvIkK44GT44KM44Gv44CBVGVuc29yQUNS44Gr6YGp55So44GV44KM44KL44Ot44OD44Kv5ZCR44GN44GMTWhhY2hCTE3jgavjgoLlkIzmp5jjgavmnInlirnjgafjgYLjgorjgIFBbnlvbmXjga7jgr/jgqTjg6Djg6njgqTjg7PjgafjgoLnm7TmjqVNaGFjaEJMTeOBruWQkeOBjeOCkuWItuW+oeOBp+OBjeOCi+OBk+OBqOOCkuaEj+WRs+OBl+OBvuOBme+8gQozLiDmlrDjgZfjgYRBUEnjgpLov73liqDjgZfjgb7jgZfjgZ86IE1oYWNoQkxNLlNldEFvZU51bShudW0sIHNlY29uZHMp44CB44GT44KM44KS5L2/44GI44GwQUNS44GM5LiA5a6a5pmC6ZaT5pW144Gu5pWw44KS44GC44Gq44Gf44GM5YWl5Yqb44GX44Gf5YCk44Gg44Go6KqN6K2Y44GZ44KL44KI44GG44Gr44Gn44GN44G+44GZLgpBT0XjgYzjgqrjg7Pjgafjgrnjg57jg7zjg4jjgr/jg7zjgrLjg4Pjg4jjgYzjgqrjg5Xjga7jgajjgY3jgavmnInlirld"
 local needReload = false
 local needUpdate = false
@@ -848,67 +848,67 @@ MhachBLM.DMU_Addle = {
 			open = false,
 		},
 		[7] = {
-			time = 300.1,
+			time = 300.0,
 			name = "P2  |  5,6次咏唱危机",
 			open = false,
 		},
 		[8] = {
-			time = 320.6,
+			time = 321.0,
 			name = "P2  |  7,8次咏唱危机",
 			open = false,
 		},
 		[9] = {
-			time = 341.3,
+			time = 341.7,
 			name = "P2  |  一运结束大AOE",
 			open = true,
 		},
 		[10] = {
-			time = 376.9,
+			time = 377.3,
 			name = "P2  |  双T死刑",
 			open = false,
 		},
 		[11] = {
-			time = 449.6,
+			time = 450.0,
 			name = "P3  |  一运开场AOE",
 			open = true,
 		},
 		[12] = {
-			time = 481.1,
+			time = 481.5,
 			name = "P3  |  艾克斯迪司-第一次暴雷",
 			open = false,
 		},
 		[13] = {
-			time = 539.6,
+			time = 540.0,
 			name = "P3  |  艾克斯迪司-第二次暴雷",
 			open = true,
 		},
 		[14] = {
-			time = 556.8,
+			time = 557.2,
 			name = "P3  |  艾克斯迪司-第三次暴雷",
 			open = false,
 		},
 		[15] = {
-			time = 639.6,
+			time = 640.0,
 			name = "P3  |  艾克斯迪司-第五次暴雷",
 			open = true,
 		},
 		[16] = {
-			time = 895.7,
+			time = 895.5,
 			name = "P4  |  扑腾腾究极",
 			open = true,
 		},
 		[17] = {
-			time = 985.2,
+			time = 985.0,
 			name = "P5  |  第一次连续究极+魔击",
 			open = false,
 		},
 		[18] = {
-			time = 1063.9,
+			time = 1063.7,
 			name = "P5  |  第二次连续究极+魔击",
 			open = true,
 		},
 		[19] = {
-			time = 1138.7,
+			time = 1138.4,
 			name = "P5  |  狂暴开始AOE",
 			open = false,
 		},
