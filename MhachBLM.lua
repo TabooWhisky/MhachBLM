@@ -805,7 +805,7 @@ local speed_F = 6
 local speed_S = 2.4000000953674
 local speed_W = 2.4000000953674
 
-local version = "2.3.3"
+local version = "2.3.4"
 local vlog = "W0NOXVsxLuabtOaWsOS6hkRNVeWHj+S8pF0KW0VOXVsxLiBVcGRhdGVkIERNVSBkYW1hZ2UgcmVkdWN0aW9uXQpbSlBdWzEuIERNVeOBruODgOODoeODvOOCuOi7vea4m+OCkuabtOaWsOOBl+OBn10="
 local needReload = false
 local needUpdate = false
@@ -893,26 +893,41 @@ MhachBLM.DMU_Addle = {
 			open = true,
 		},
 		[16] = {
-			time = 895.5,
-			name = "P4  |  扑腾腾究极",
-			open = true,
+			time = 826.0,
+			name = "P4  |  第一次大十字",
+			open = false,
 		},
 		[17] = {
+			time = 841.1,
+			name = "P4  |  第二次大十字",
+			open = false,
+		},
+		[18] = {
+			time = 856.0,
+			name = "P4  |  第三次大十字",
+			open = true,
+		},
+		[19] = {
+			time = 895.5,
+			name = "P4  |  第一次扑腾腾究极",
+			open = false,
+		},
+		[20] = {
 			time = 985.0,
 			name = "P5  |  第一次连续究极+魔击",
 			open = false,
 		},
-		[18] = {
+		[21] = {
 			time = 1063.7,
 			name = "P5  |  三星塔后连续究极+魔击",
 			open = true,
 		},
-		[19] = {
+		[22] = {
 			time = 1138.4,
 			name = "P5  |  前四次狂暴AOE",
 			open = false,
 		},
-		[20] = {
+		[23] = {
 			time = 1154.7,
 			name = "P5  |  后四次狂暴AOE",
 			open = true,
