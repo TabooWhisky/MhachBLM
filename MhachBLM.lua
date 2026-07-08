@@ -805,7 +805,7 @@ local speed_F = 6
 --local speed_S = 2.4000000953674
 --local speed_W = 2.4000000953674
 
-local version = "2.3.5"
+local version = "2.3.6"
 local vlog = "W0NOXVsxLumUgeWumumdnumVnOWktOmdouWQkeS8mue7mOWItuaWueWQkV0KW0VOXVsxLiBMb2NrIG5vbi1jYW1lcmEtZmFjaW5nIHRvIGRyYXcgZGlyZWN0aW9uXQpbSlBdWzEuIOOCq+ODoeODqeOBruWQkeOBjeOBq+mWouS/guOBquOBj+aPj+eUu+aWueWQkeOCkuWbuuWumuOBmeOCi10="
 local needReload = false
 local needUpdate = false
@@ -1902,7 +1902,7 @@ local function LockFace()  --锁定面向
 		
 		if faceX ~= nil and faceY ~= nil and faceZ ~= nil then
 			player:SetFacing(faceX, faceY, faceZ)  --面向指定坐标
-			drawer:addArrow(player.pos.x, player.pos.y, player.pos.z, TensorCore.getHeadingToTarget({x = faceX, y = faceY, z = faceZ}, player.pos), 1.8, 0.1, 0.3, 0.3)
+			drawer:addArrow(player.pos.x, player.pos.y, player.pos.z, TensorCore.getHeadingToTarget(player.pos, {x = faceX, y = faceY, z = faceZ}), 1.8, 0.1, 0.3, 0.3)
 		elseif faceX ~= nil and faceY == nil and faceZ == nil then
 			player:SetFacing(faceX)--面向镜头
 			drawer:addArrow(player.pos.x, player.pos.y, player.pos.z, faceX, 1.8, 0.1, 0.3, 0.3)
