@@ -798,15 +798,15 @@ local faceX = nil  --面向坐标
 local faceY = nil
 local faceZ = nil
 local SoulPoint = nil  --灵魂的坐标
-local drawer = Argus2.ShapeDrawer:new(GUI:ColorConvertFloat4ToU32(0, 0, 1, 1),nil,GUI:ColorConvertFloat4ToU32(0, 0, 1, 1),GUI:ColorConvertFloat4ToU32(0, 0, 1, 1),1)
+local drawer = TensorCore.getStaticDrawer(4294967040)
 local buttonsPerRow = 3  -- 每行显示3个按钮
-local speed_B = 2.4000000953674
+--local speed_B = 2.4000000953674
 local speed_F = 6
-local speed_S = 2.4000000953674
-local speed_W = 2.4000000953674
+--local speed_S = 2.4000000953674
+--local speed_W = 2.4000000953674
 
-local version = "2.3.4"
-local vlog = "W0NOXVsxLuabtOaWsOS6hkRNVeWHj+S8pF0KW0VOXVsxLiBVcGRhdGVkIERNVSBkYW1hZ2UgcmVkdWN0aW9uXQpbSlBdWzEuIERNVeOBruODgOODoeODvOOCuOi7vea4m+OCkuabtOaWsOOBl+OBn10="
+local version = "2.3.5"
+local vlog = "W0NOXVsxLumUgeWumumdnumVnOWktOmdouWQkeS8mue7mOWItuaWueWQkV0KW0VOXVsxLiBMb2NrIG5vbi1jYW1lcmEtZmFjaW5nIHRvIGRyYXcgZGlyZWN0aW9uXQpbSlBdWzEuIOOCq+ODoeODqeOBruWQkeOBjeOBq+mWouS/guOBquOBj+aPj+eUu+aWueWQkeOCkuWbuuWumuOBmeOCi10="
 local needReload = false
 local needUpdate = false
 local queueUnlock = {true, true, true, true ,true}
@@ -1883,16 +1883,13 @@ function self.PlayerComboEmpty() --返回用户循环是否为空
 end
 ---------------------------------------------------------------------------------------
 local function LockFace()  --锁定面向
-	if player:GetSpeed().Forward > 0 and player:GetSpeed().Forward < 9 and player:GetSpeed().Forward ~= speed_F then  --记录原始速度，太快太慢都不记录
-		speed_B = player:GetSpeed().Backward
+	if player:GetSpeed().Forward > 0 and player:GetSpeed().Forward < 9 and TensorCore.getSpeed() ~= speed_F then  --记录原始速度，太快太慢都不记录
 		speed_F = player:GetSpeed().Forward
-		speed_S = player:GetSpeed().Strafe
-		speed_W = player:GetSpeed().Walk
 	end
 	if self.Skills[-2].inHotbarList then
 		if not (GUI:IsKeyDown(87) or GUI:IsKeyDown(65) or GUI:IsKeyDown(83) or GUI:IsKeyDown(68) or (GUI:IsMouseDown(0) and GUI:IsMouseDown(1))) then
-			player:SetSpeed(1, 0, 0, 0, 0)
-			if player:GetSpeed().Forward == 0 then
+			TensorCore.setSpeed(1, 0)
+			if TensorCore.getSpeed() == 0 then
 				SendTextCommand("/automove on")
 				SendTextCommand("/automove off")
 			else
@@ -1900,21 +1897,23 @@ local function LockFace()  --锁定面向
 			end
 		else
 			SendTextCommand("/automove off")
-			player:SetSpeed(1, speed_F, speed_B, speed_S, speed_W)
+			TensorCore.setSpeed(1, speed_F)
 		end
 		
 		if faceX ~= nil and faceY ~= nil and faceZ ~= nil then
 			player:SetFacing(faceX, faceY, faceZ)  --面向指定坐标
+			drawer:addArrow(player.pos.x, player.pos.y, player.pos.z, TensorCore.getHeadingToTarget({x = faceX, y = faceY, z = faceZ}, player.pos), 1.8, 0.1, 0.3, 0.3)
 		elseif faceX ~= nil and faceY == nil and faceZ == nil then
 			player:SetFacing(faceX)--面向镜头
+			drawer:addArrow(player.pos.x, player.pos.y, player.pos.z, faceX, 1.8, 0.1, 0.3, 0.3)
 		else
 			player:SetFacing(player.camera.h - math.pi)--面向镜头
 		end
 	end
 
-	if (not self.Skills[-2].inHotbarList) and player:GetSpeed().Forward == 0 then
+	if (not self.Skills[-2].inHotbarList) and TensorCore.getSpeed() == 0 then
 		SendTextCommand("/automove off")
-		player:SetSpeed(1, speed_F, speed_B, speed_S, speed_W)
+		TensorCore.setSpeed(1, speed_F)
 	end
 end
 
@@ -2024,9 +2023,9 @@ end
 local function SlideFast()  --滑板鞋
 	if self.Settings.SlideFast and not self.Skills[-2].inHotbarList then
 		if player.castinginfo.channelingid ~= 0 then
-			player:SetSpeed(1, 10, 10, 10, 10)
+			TensorCore.setSpeed(1, 10)
 		else
-			player:SetSpeed(1, speed_F, speed_B, speed_S, speed_W)
+			TensorCore.setSpeed(1, speed_F)
 		end
 	end
 end
