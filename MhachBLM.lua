@@ -76,7 +76,8 @@ MhachBLM = {
 local self = MhachBLM
 
 self.Settings = {
-    Debug = true,
+    Debug = false,
+	Debug2 = false,  --是否打印到聊天框
 	FuckAnimation = false,  --是否开启了动画锁
 	RedPlayer = false,   --红丸循环
 	Between_the_Aetherial = false,  --魔纹步替代以太步
@@ -191,7 +192,6 @@ self.PrognosisTime = 0
 self.CurrentDPSTarget = 0
 self.HasDPSTarget = false
 
-
 function self.DebugPrint(str)  --打印到mini控制台
     if self.Settings.Debug then
         d("[MhachBLM] " .. str)
@@ -203,12 +203,14 @@ end
 ---@param color string {color:0,255,0}
 ---@param se number 提示音数字
 function self.DebugPrint2(str, color, se)  --打印到游戏对话框
-	color = color or "{color:0,255,255}"
-	se = se or 0
-	if se > 0  and se <= 16 then
-		TensorCore.sendParsedChatMessage("/e {color:0,255,255}{resetcolor}" .. color .. str .. "<se." .. se .. ">" .. "{resetcolor}")
-	else
-		TensorCore.sendParsedChatMessage("/e {color:0,255,255}{resetcolor}" .. color .. str .. "{resetcolor}")
+	if self.Settings.Debug2 then
+		color = color or "{color:0,255,255}"
+		se = se or 0
+		if se > 0  and se <= 16 then
+			TensorCore.sendParsedChatMessage("/e {color:0,255,255}{resetcolor}" .. color .. str .. "<se." .. se .. ">" .. "{resetcolor}")
+		else
+			TensorCore.sendParsedChatMessage("/e {color:0,255,255}{resetcolor}" .. color .. str .. "{resetcolor}")
+		end
 	end
 end
 
@@ -805,8 +807,8 @@ local speed_F = 6
 --local speed_S = 2.4000000953674
 --local speed_W = 2.4000000953674
 
-local version = "2.3.6"
-local vlog = "W0NOXVsxLumUgeWumumdnumVnOWktOmdouWQkeS8mue7mOWItuaWueWQkV0KW0VOXVsxLiBMb2NrIG5vbi1jYW1lcmEtZmFjaW5nIHRvIGRyYXcgZGlyZWN0aW9uXQpbSlBdWzEuIOOCq+ODoeODqeOBruWQkeOBjeOBq+mWouS/guOBquOBj+aPj+eUu+aWueWQkeOCkuWbuuWumuOBmeOCi10="
+local version = "2.3.7"
+local vlog = "W0NOXVsxLumUgeWumumdnumVnOWktOmdouWQkeS8mue7mOWItuaWueWQkQoyLuWinuWKoOaYr+WQpuWcqOiBiuWkqeahhuaJk+WNsOeahOmAiemhuV0KW0VOXVsxLiBMb2NrIG5vbi1jYW1lcmEtZmFjaW5nIHRvIGRyYXcgZGlyZWN0aW9uCjIuQWRkIGFuIG9wdGlvbiB0byBwcmludCBpbiB0aGUgY2hhdCBib3hdCltKUF1bMS4g44Kr44Oh44Op44Gu5ZCR44GN44Gr6Zai5L+C44Gq44GP5o+P55S75pa55ZCR44KS5Zu65a6a44GZ44KLCjIu44OB44Oj44OD44OI44Oc44OD44Kv44K544Gr6KGo56S644GZ44KL44GL44Gp44GG44GL44Gu44Kq44OX44K344On44Oz44KS6L+95Yqg44GZ44KLXQ=="
 local needReload = false
 local needUpdate = false
 local queueUnlock = {true, true, true, true ,true}
@@ -1000,6 +1002,7 @@ local function LoadSettings()
 		self.BLM.Short_Rotation = tbl.Value.Short_Rotation or false
 		self.BLM.Burn_Polyglot = tbl.Value.Burn_Polyglot or false
 		self.Settings.Debug = tbl.Value.Debug or false
+		self.Settings.Debug2 = tbl.Value.Debug2 or false
 		self.Settings.FuckAnimation = tbl.Value.FuckAnimation or true
 		self.Settings.RedPlayer = tbl.Value.RedPlayer or false
 		self.Settings.Between_the_Aetherial = tbl.Value.Between_the_Aetherial or false
@@ -1039,6 +1042,7 @@ local function SaveSettings()
 	tbl.Value.Short_Rotation = self.BLM.Short_Rotation
 	tbl.Value.Burn_Polyglot = self.BLM.Burn_Polyglot
 	tbl.Value.Debug = self.Settings.Debug
+	tbl.Value.Debug2 = self.Settings.Debug2
 	tbl.Value.FuckAnimation = self.Settings.FuckAnimation
 	tbl.Value.RedPlayer = self.Settings.RedPlayer
 	tbl.Value.Between_the_Aetherial = self.Settings.Between_the_Aetherial
@@ -3412,6 +3416,8 @@ function self.Draw()
 				GUI:Spacing()
 				local value, changed = GUI:Checkbox(T["MSet"][2][Language], self.Settings.Debug)
 				GUI:Spacing()
+				local value12, changed12 = GUI:Checkbox(T["MSet"][18][Language], self.Settings.Debug2)
+				GUI:Spacing()
 				local value2, changed2 = GUI:Checkbox(T["MSet"][3][Language], self.Settings.FuckAnimation)
 				GUI:Spacing()
 				local value3, changed3 = GUI:Checkbox(T["MSet"][4][Language], self.Settings.RedPlayer)
@@ -3535,6 +3541,10 @@ function self.Draw()
 				end
 				if changed11 then
 					self.Settings.AutoUpdate = value11
+					SaveSettings()
+				end
+				if changed12 then
+					self.Settings.Debug2 = value12
 					SaveSettings()
 				end
 
