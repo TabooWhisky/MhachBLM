@@ -198,7 +198,12 @@ local tbl =
             ["EN"] = "ACR Home Page",
             ["JP"] = "ACRホームページ",
         },
-
+        [18] =
+        {
+            ["CN"] = "打印到聊天框",
+            ["EN"] = "Print to the chat box",
+            ["JP"] = "チャットボックスに出力する",
+        },
 
     },
 
